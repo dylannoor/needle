@@ -83,8 +83,12 @@ pub enum ScanStatus {
         #[ts(type = "number")]
         at_ms: u64,
     },
-    Scanning { percent: u8 },
-    Error { message: String },
+    Scanning {
+        percent: u8,
+    },
+    Error {
+        message: String,
+    },
     NotShared,
 }
 
@@ -273,10 +277,22 @@ pub struct RoomView {
 #[serde(tag = "kind", rename_all = "camelCase")]
 #[ts(export)]
 pub enum RoomEventPayload {
-    Message { message: ChatMessage },
-    Joined { room: String, member: RoomMember },
-    Left { room: String, username: String },
-    Ticker { room: String, username: String, text: String },
+    Message {
+        message: ChatMessage,
+    },
+    Joined {
+        room: String,
+        member: RoomMember,
+    },
+    Left {
+        room: String,
+        username: String,
+    },
+    Ticker {
+        room: String,
+        username: String,
+        text: String,
+    },
     ListChanged,
 }
 

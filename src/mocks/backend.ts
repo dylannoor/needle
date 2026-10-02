@@ -98,9 +98,15 @@ export function createMockBackend(opts: { latency?: number; simulate?: boolean }
     login: (a) => {
       const username = str(a, "username").trim();
       if (!username || !str(a, "password")) throw "Enter your username and password.";
-      if (str(a, "password") === "wrong") throw "That password doesn't match this username. Soulseek usernames are claimed by whoever logs in first.";
-      s.session = { ...s.session, state: "online", username, error: null, remembered: Boolean(a.remember) };
-      emit("session", s.session);
+      // Like the real backend: answer "connecting" now, report the outcome as a session event.
+      const wrong = str(a, "password") === "wrong";
+      s.session = { ...s.session, state: "connecting", username, error: null, remembered: Boolean(a.remember) };
+      later(latency * 4, () => {
+        s.session = wrong
+          ? { ...s.session, state: "error", error: "That password doesn't match this username. Soulseek usernames are claimed by whoever logs in first." }
+          : { ...s.session, state: "online" };
+        emit("session", s.session);
+      });
       return s.session;
     },
     logout: () => {
@@ -133,7 +139,7 @@ export function createMockBackend(opts: { latency?: number; simulate?: boolean }
     search_room: (a) => handlers.search_start({ query: `${str(a, "query")}` }),
     search_view: (a) => {
       const e = s.searches.get(str(a, "searchId"));
-      if (!e) throw "That search has expired. Search again.";
+      if (!e) throw "That search has expired, run it again";
       return fx.searchView(str(a, "searchId"), e.query, e.done, Boolean(a.includeHidden));
     },
     search_cancel: (a) => {
@@ -145,7 +151,7 @@ export function createMockBackend(opts: { latency?: number; simulate?: boolean }
 
     download_release: (a) => {
       const e = s.searches.get(str(a, "searchId"));
-      if (!e) throw "That search has expired. Search again.";
+      if (!e) throw "That search has expired, run it again";
       const view = fx.searchView(str(a, "searchId"), e.query, true, true);
       const r = [...view.releases, ...view.hiddenReleases].find((x) => x.id === str(a, "releaseId"));
       if (!r) throw "That release is no longer in the results.";

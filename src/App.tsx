@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { startExtensionRuntime } from "./extensions-runtime";
 import { Rail } from "./components/rail";
 import { TooltipProvider } from "./components/ui/tooltip";
@@ -38,13 +38,14 @@ function Shell() {
   );
 }
 
-function Splash({ text }: { text: string }) {
+function Splash({ text, detail }: { text: string; detail?: string | null }) {
   return (
     <div data-tauri-drag-region className="flex h-full flex-col items-center justify-center gap-3 text-muted">
       <span className="text-text">
         <Logo size={28} />
       </span>
       <span className="text-[13px]">{text}</span>
+      {detail && <span className="max-w-[360px] text-center text-[12px] text-faint">{detail}</span>}
     </div>
   );
 }
@@ -57,8 +58,14 @@ function initialScreen(): Screen {
 export function App() {
   useBackendEvents();
   const session = useSession();
-  const online = session.data?.state === "online";
+  const state = session.data?.state;
+  const online = state === "online";
   const started = useRef(false);
+  // Once logged in, keep the app on screen while the backend reconnects
+  // ("connecting" with an error). Logout or a fatal error goes back to login.
+  const [inside, setInside] = useState(false);
+  if (online && !inside) setInside(true);
+  if (inside && (state === "offline" || state === "error")) setInside(false);
 
   useEffect(() => {
     if (online && !started.current) {
@@ -69,14 +76,14 @@ export function App() {
 
   let content: React.JSX.Element;
   if (session.isPending) content = <Splash text="Starting Needle" />;
-  else if (online) {
+  else if (online || inside) {
     content = (
       <NavProvider initial={initialScreen()}>
         <Shell />
       </NavProvider>
     );
-  } else if (session.data?.state === "connecting" && session.data.remembered) content = <Splash text={`Connecting as ${session.data.username ?? "you"}`} />;
-  else content = <LoginScreen status={session.data ?? null} />;
+  } else if (session.data?.state === "connecting" && session.data.remembered) content = <Splash text={`Connecting as ${session.data.username ?? "you"}`} detail={session.data.error} />;
+  else content = <LoginScreen />;
 
   return <TooltipProvider>{content}</TooltipProvider>;
 }

@@ -119,10 +119,11 @@ function files(folder: string, names: string[], fmt: Fmt, totalBytes: number, co
   return out;
 }
 
-function candidate(username: string, folder: string, fs: FileInfo[], freeSlot: boolean, avgSpeed: number, queueLen: number | null): Candidate {
+function candidate(username: string, folder: string, fs: FileInfo[], freeSlot: boolean, avgSpeed: number, _queueLen: number | null): Candidate {
   return {
     id: `${username}|${folder}`,
-    source: { username, freeSlot, avgSpeed, queueLen },
+    // soulseek-rs-lib does not report queue length yet.
+    source: { username, freeSlot, avgSpeed, queueLen: null },
     folder,
     files: fs,
     totalSize: fs.reduce((a, f) => a + f.size, 0),
@@ -310,10 +311,10 @@ export function jobs(): JobView[] {
     },
     {
       id: "j4", title: "Minimal Nation", artist: "Robert Hood", formatLabel: "MP3 320",
-      status: { kind: "queued", position: 14 }, detail: "at hood_fan", currentUser: "hood_fan",
+      status: { kind: "queued", position: null }, detail: "at hood_fan", currentUser: "hood_fan",
       sourceIndex: 1, sourceCount: 2, items: items(["The Pace", "Rhythm of Vision", "Minimal Nation", "Ride Out", "Unix", "Self Powered"], "mp3", 0, 0, 14 * MB),
       bytes: 0, total: 84 * MB, speed: 0, switchInSecs: 460,
-      log: [{ atMs: NOW - 2 * min, text: "Waiting in hood_fan's queue at position 14", tone: "info" }],
+      log: [{ atMs: NOW - 2 * min, text: "Waiting in hood_fan's queue", tone: "info" }],
       outputDir: "~/Music/Downloads/Robert Hood - Minimal Nation", createdMs: NOW - 8 * min, finishedMs: null,
     },
     {
@@ -477,7 +478,7 @@ export function browse(username: string): BrowseResult {
       mk("Detroit\\Moodymann\\1997 - Silentintroduction", ["Don't Be Afraid", "Misled", "Tribute"], flac16, 140 * MB),
       mk("Daft Punk\\1997 - Homework", HOMEWORK, flac16, 482 * MB),
     ],
-    lockedDirs: [mk("Private\\Promos 2026", ["Unreleased Dub", "Edit"], { codec: "wav", bitDepth: 24, sampleRate: 48000 }, 200 * MB)],
+    lockedDirs: [],
     error: null,
   };
 }

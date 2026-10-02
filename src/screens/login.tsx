@@ -1,15 +1,15 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import type { SessionStatus } from "../bindings/SessionStatus";
 import { Button } from "../components/ui/button";
 import { Logo } from "../components/ui/icons";
 import { Check, Input } from "../components/ui/input";
 import { InlineError } from "../components/ui/states";
 import { api, errorText } from "../lib/ipc";
-import { keys } from "../lib/queries";
+import { keys, useSession } from "../lib/queries";
 
-export function LoginScreen({ status }: { status: SessionStatus | null }) {
+export function LoginScreen() {
   const qc = useQueryClient();
+  const status = useSession().data ?? null;
   const [username, setUsername] = useState(status?.username ?? "");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
@@ -17,7 +17,9 @@ export function LoginScreen({ status }: { status: SessionStatus | null }) {
     mutationFn: () => api.login(username.trim(), password, remember),
     onSuccess: (s) => qc.setQueryData(keys.session, s),
   });
-  const error = login.error ? errorText(login.error) : status?.state === "error" ? status.error : null;
+  // login answers "connecting"; the outcome arrives as a session event.
+  const connecting = login.isPending || status?.state === "connecting";
+  const error = login.error ? errorText(login.error) : status?.state === "error" || status?.state === "connecting" ? status.error : null;
 
   return (
     <div data-tauri-drag-region className="flex h-full items-center justify-center bg-bg">
@@ -51,8 +53,8 @@ export function LoginScreen({ status }: { status: SessionStatus | null }) {
             <InlineError message={error} />
           </div>
         )}
-        <Button type="submit" variant="primary" size="lg" className="mt-6" disabled={login.isPending || !username.trim() || !password}>
-          {login.isPending ? "Logging in" : "Log in"}
+        <Button type="submit" variant="primary" size="lg" className="mt-6" disabled={connecting || !username.trim() || !password}>
+          {connecting ? "Connecting" : "Log in"}
         </Button>
       </form>
     </div>

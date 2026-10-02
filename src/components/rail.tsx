@@ -39,7 +39,9 @@ export function Rail() {
         ? { tone: "warn" as const, text: `Away as ${session.username}` }
         : { tone: "ok" as const, text: `Online as ${session.username}` }
       : session.state === "connecting"
-        ? { tone: "busy" as const, text: "Connecting" }
+        ? session.error
+          ? { tone: "warn" as const, text: "Reconnecting", detail: session.error }
+          : { tone: "busy" as const, text: "Connecting" }
         : { tone: "bad" as const, text: session.error ? "Disconnected" : "Offline" };
   return (
     <nav aria-label="Main" className="flex w-rail shrink-0 flex-col gap-0.5 border-r border-line bg-rail px-2.5 pb-[18px]">
@@ -57,9 +59,12 @@ export function Rail() {
       <NavItem screen="extensions" icon={<RailIcons.extensions />}>Extensions</NavItem>
       <div data-tauri-drag-region className="grow" />
       <NavItem screen="settings" icon={<RailIcons.settings />}>Settings</NavItem>
-      <div className="flex h-control items-center gap-[9px] px-2.5 text-[13px] text-muted" title={session?.error ?? undefined}>
-        <StatusDot tone={status.tone} />
-        <span className="truncate">{status.text}</span>
+      <div role="status" className="flex min-h-control flex-col justify-center px-2.5 text-[13px] text-muted">
+        <span className="flex items-center gap-[9px]">
+          <StatusDot tone={status.tone} />
+          <span className="truncate">{status.text}</span>
+        </span>
+        {"detail" in status && <span className="pl-4 text-[12px] leading-snug text-faint">{status.detail}</span>}
       </div>
     </nav>
   );

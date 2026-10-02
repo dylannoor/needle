@@ -231,7 +231,9 @@ pub struct Verdict {
 #[serde(tag = "kind", rename_all = "camelCase")]
 #[ts(export)]
 pub enum TransferStatus {
-    Queued { position: Option<u32> },
+    Queued {
+        position: Option<u32>,
+    },
     Progress {
         #[ts(type = "number")]
         bytes: u64,
@@ -239,8 +241,12 @@ pub enum TransferStatus {
         total: u64,
         speed: f64,
     },
-    Completed { local_path: String },
-    Failed { reason: String },
+    Completed {
+        local_path: String,
+    },
+    Failed {
+        reason: String,
+    },
     TimedOut,
     Cancelled,
 }
@@ -279,14 +285,20 @@ pub struct ItemView {
 #[ts(export)]
 pub enum JobStatus {
     Waiting,
-    Queued { position: Option<u32> },
+    Queued {
+        position: Option<u32>,
+    },
     Downloading,
     /// Something went wrong and Needle is handling it (switching source,
     /// replacing a rejected file).
-    Recovering { reason: String },
+    Recovering {
+        reason: String,
+    },
     Verifying,
     Done,
-    Failed { reason: String },
+    Failed {
+        reason: String,
+    },
     Paused,
     Cancelled,
 }
@@ -348,14 +360,27 @@ pub enum JobEvent {
     Start,
     /// Time passes; the engine checks the stuck rules.
     Tick,
-    Transfer { name: String, status: TransferStatus },
-    Verified { name: String, verdict: Verdict },
+    Transfer {
+        name: String,
+        status: TransferStatus,
+    },
+    Verified {
+        name: String,
+        verdict: Verdict,
+    },
     /// The verifier could not read the file at all.
-    VerifyError { name: String, error: String },
+    VerifyError {
+        name: String,
+        error: String,
+    },
     /// The user overrides a rejection.
-    KeepAnyway { name: String },
+    KeepAnyway {
+        name: String,
+    },
     /// Fresh sources from a re-search (already grouped and ranked).
-    NewSources { candidates: Vec<Candidate> },
+    NewSources {
+        candidates: Vec<Candidate>,
+    },
     Pause,
     Resume,
     Cancel,
@@ -365,13 +390,34 @@ pub enum JobEvent {
 /// Output of `Job::handle`: side effects for the backend to perform.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub enum JobAction {
-    Request { username: String, remote_path: String, size: u64, dest_dir: String },
-    CancelTransfer { username: String, remote_path: String },
-    Verify { name: String, local_path: String, tier: Tier, strictness: Strictness },
-    Delete { local_path: String },
-    MoveToRejected { local_path: String },
-    Research { query: String },
-    AddToWishlist { query: String },
+    Request {
+        username: String,
+        remote_path: String,
+        size: u64,
+        dest_dir: String,
+    },
+    CancelTransfer {
+        username: String,
+        remote_path: String,
+    },
+    Verify {
+        name: String,
+        local_path: String,
+        tier: Tier,
+        strictness: Strictness,
+    },
+    Delete {
+        local_path: String,
+    },
+    MoveToRejected {
+        local_path: String,
+    },
+    Research {
+        query: String,
+    },
+    AddToWishlist {
+        query: String,
+    },
     /// The job finished with every item verified or kept.
     Finished,
 }
