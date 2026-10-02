@@ -1,6 +1,7 @@
 //! The job runner: feeds events into `needle_core::jobs::Job`, performs the
 //! actions that come out, persists every change and emits `jobs:update`.
 
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::Receiver;
@@ -11,8 +12,8 @@ use needle_core::api::{DownloadedFile, ExtensionEvent, Settings};
 use needle_core::files::basename;
 use needle_core::jobs::Job;
 use needle_core::model::{
-    Candidate, Codec, FileInfo, JobAction, JobEvent, JobStatus, JobView, QualityProfile, Release,
-    Source, Strictness, Tier, TransferStatus, Verdict,
+    Candidate, Codec, FileInfo, ItemState, JobAction, JobEvent, JobStatus, JobView, QualityProfile,
+    Release, Source, Strictness, Tier, TransferStatus, Verdict,
 };
 use needle_core::releases::build_view;
 use soulseek_rs::{Client, DownloadStatus};
@@ -23,6 +24,8 @@ use crate::throttle::Throttle;
 pub struct JobEntry {
     pub job: Job,
     saved: Option<String>,
+    /// Where rejected files went, by their original path, so a kept one can come back.
+    rejected: HashMap<String, PathBuf>,
 }
 
 pub fn apply_settings(client: &Client, settings: &Settings) {
@@ -40,6 +43,7 @@ pub fn load(state: &Shared) {
                 JobEntry {
                     job,
                     saved: Some(json),
+                    rejected: HashMap::new(),
                 },
             );
         }
@@ -158,7 +162,14 @@ pub fn create(
         output.display().to_string(),
         now,
     );
-    lock(&state.jobs).insert(id.clone(), JobEntry { job, saved: None });
+    lock(&state.jobs).insert(
+        id.clone(),
+        JobEntry {
+            job,
+            saved: None,
+            rejected: HashMap::new(),
+        },
+    );
     feed(state, &id, JobEvent::Start);
     view(state, &id)
 }
@@ -206,6 +217,44 @@ pub fn browse_release(
         expected_tracks: audio,
         score: 0.0,
     }
+}
+
+/// Keep a rejected file anyway: the engine marks it kept, and the file moves
+/// back from the Rejected folder to where it was downloaded.
+pub fn keep(state: &Shared, id: &str, name: &str) -> Result<JobView, String> {
+    let original = view(state, id)?
+        .items
+        .into_iter()
+        .find(|i| i.name == name)
+        .and_then(|i| i.local_path)
+        .ok_or("That file has nothing to keep")?;
+    feed(
+        state,
+        id,
+        JobEvent::KeepAnyway {
+            name: name.to_string(),
+        },
+    );
+    let after = view(state, id)?;
+    let kept = after
+        .items
+        .iter()
+        .any(|i| i.name == name && i.state == ItemState::KeptAnyway);
+    if kept && !Path::new(&original).exists() {
+        let moved = lock(&state.jobs)
+            .get_mut(id)
+            .and_then(|e| e.rejected.remove(&original))
+            .unwrap_or_else(|| {
+                let from = Path::new(&original);
+                let folder = from.parent().and_then(Path::file_name).unwrap_or_default();
+                Path::new(&state.settings().rejected_dir)
+                    .join(folder)
+                    .join(from.file_name().unwrap_or_default())
+            });
+        move_file(&moved, Path::new(&original))
+            .map_err(|e| format!("Kept, but could not move it back from Rejected: {e}"))?;
+    }
+    Ok(after)
 }
 
 pub fn remove(state: &Shared, id: &str) -> Result<(), String> {
@@ -328,7 +377,11 @@ fn perform(state: &Shared, id: &str, view: &JobView, action: JobAction) {
         JobAction::MoveToRejected { local_path } => {
             let from = Path::new(&local_path);
             let to = rejected_path(Path::new(&state.settings().rejected_dir), from);
-            let _ = move_file(from, &to);
+            if move_file(from, &to).is_ok()
+                && let Some(e) = lock(&state.jobs).get_mut(id)
+            {
+                e.rejected.insert(local_path.clone(), to);
+            }
         }
         JobAction::Research { query } => {
             let (st, id) = (state.clone(), id.to_string());

@@ -141,7 +141,7 @@ pub fn job_keep_file(
     job_id: String,
     name: String,
 ) -> Result<JobView, String> {
-    job_event(&state, &job_id, JobEvent::KeepAnyway { name })
+    transfers::keep(&state, &job_id, &name)
 }
 
 #[tauri::command]

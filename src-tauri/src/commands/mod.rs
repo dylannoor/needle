@@ -108,12 +108,7 @@ pub fn profile_save(
     state: State<'_, Shared>,
     mut profile: QualityProfile,
 ) -> Result<Vec<QualityProfile>, String> {
-    if profile.name.trim().is_empty() {
-        return Err("Give the profile a name".into());
-    }
-    if profile.tiers.is_empty() {
-        return Err("A profile needs at least one tier".into());
-    }
+    profile.validate()?;
     if profile.id.trim().is_empty() {
         profile.id = format!("p{:x}", crate::state::now_ms());
     }
