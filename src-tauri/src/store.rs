@@ -10,7 +10,8 @@ use serde::{Serialize, de::DeserializeOwned};
 
 type Res<T> = rusqlite::Result<T>;
 
-const MIGRATIONS: &[&str] = &[r"
+const MIGRATIONS: &[&str] = &[
+    r"
 CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE profiles (id TEXT PRIMARY KEY, json TEXT NOT NULL);
 CREATE TABLE jobs (id TEXT PRIMARY KEY, json TEXT NOT NULL, created_ms INTEGER NOT NULL);
@@ -29,7 +30,14 @@ CREATE TABLE wishlist (
     matches INTEGER NOT NULL DEFAULT 0, search_id TEXT, seen TEXT NOT NULL DEFAULT '[]'
 );
 CREATE TABLE shares (path TEXT PRIMARY KEY, visibility TEXT NOT NULL);
-"];
+",
+    r"
+CREATE TABLE rejected (
+    job_id TEXT NOT NULL, name TEXT NOT NULL, path TEXT NOT NULL,
+    PRIMARY KEY (job_id, name)
+);
+",
+];
 
 pub struct Store {
     conn: Connection,
@@ -151,7 +159,35 @@ impl Store {
 
     pub fn delete_job(&self, id: &str) -> Res<()> {
         self.conn.execute("DELETE FROM jobs WHERE id = ?1", [id])?;
+        self.conn
+            .execute("DELETE FROM rejected WHERE job_id = ?1", [id])?;
         Ok(())
+    }
+
+    /// Where a job's rejected file was moved to.
+    pub fn set_rejected(&self, job_id: &str, name: &str, path: &str) -> Res<()> {
+        self.conn.execute(
+            "INSERT INTO rejected (job_id, name, path) VALUES (?1, ?2, ?3)
+             ON CONFLICT(job_id, name) DO UPDATE SET path = excluded.path",
+            [job_id, name, path],
+        )?;
+        Ok(())
+    }
+
+    pub fn take_rejected(&self, job_id: &str, name: &str) -> Res<Option<String>> {
+        let path = self
+            .conn
+            .query_row(
+                "SELECT path FROM rejected WHERE job_id = ?1 AND name = ?2",
+                [job_id, name],
+                |r| r.get(0),
+            )
+            .optional()?;
+        self.conn.execute(
+            "DELETE FROM rejected WHERE job_id = ?1 AND name = ?2",
+            [job_id, name],
+        )?;
+        Ok(path)
     }
 
     // search history ---------------------------------------------------------

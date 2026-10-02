@@ -1,7 +1,6 @@
 //! The job runner: feeds events into `needle_core::jobs::Job`, performs the
 //! actions that come out, persists every change and emits `jobs:update`.
 
-use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::Receiver;
@@ -19,13 +18,12 @@ use needle_core::releases::build_view;
 use soulseek_rs::{Client, DownloadStatus};
 
 use crate::state::{Shared, err, lock, now_ms};
+use crate::store::Store;
 use crate::throttle::Throttle;
 
 pub struct JobEntry {
     pub job: Job,
     saved: Option<String>,
-    /// Where rejected files went, by their original path, so a kept one can come back.
-    rejected: HashMap<String, PathBuf>,
 }
 
 pub fn apply_settings(client: &Client, settings: &Settings) {
@@ -43,7 +41,6 @@ pub fn load(state: &Shared) {
                 JobEntry {
                     job,
                     saved: Some(json),
-                    rejected: HashMap::new(),
                 },
             );
         }
@@ -162,14 +159,7 @@ pub fn create(
         output.display().to_string(),
         now,
     );
-    lock(&state.jobs).insert(
-        id.clone(),
-        JobEntry {
-            job,
-            saved: None,
-            rejected: HashMap::new(),
-        },
-    );
+    lock(&state.jobs).insert(id.clone(), JobEntry { job, saved: None });
     feed(state, &id, JobEvent::Start);
     view(state, &id)
 }
@@ -240,21 +230,46 @@ pub fn keep(state: &Shared, id: &str, name: &str) -> Result<JobView, String> {
         .items
         .iter()
         .any(|i| i.name == name && i.state == ItemState::KeptAnyway);
-    if kept && !Path::new(&original).exists() {
-        let moved = lock(&state.jobs)
-            .get_mut(id)
-            .and_then(|e| e.rejected.remove(&original))
-            .unwrap_or_else(|| {
-                let from = Path::new(&original);
-                let folder = from.parent().and_then(Path::file_name).unwrap_or_default();
-                Path::new(&state.settings().rejected_dir)
-                    .join(folder)
-                    .join(from.file_name().unwrap_or_default())
-            });
-        move_file(&moved, Path::new(&original))
-            .map_err(|e| format!("Kept, but could not move it back from Rejected: {e}"))?;
+    if kept {
+        let rejected_dir = PathBuf::from(state.settings().rejected_dir);
+        move_back(
+            &lock(&state.store),
+            &rejected_dir,
+            id,
+            name,
+            Path::new(&original),
+        )
+        .map_err(|e| format!("Kept, but could not move it back from Rejected: {e}"))?;
     }
     Ok(after)
+}
+
+/// Bring a kept file back from Rejected to `original`. Uses the location
+/// recorded at rejection, else where the move would have put it unnumbered.
+pub fn move_back(
+    store: &Store,
+    rejected_dir: &Path,
+    job_id: &str,
+    name: &str,
+    original: &Path,
+) -> std::io::Result<()> {
+    let recorded = store.take_rejected(job_id, name).ok().flatten();
+    if original.exists() {
+        return Ok(());
+    }
+    let from = recorded.map_or_else(
+        || {
+            let folder = original
+                .parent()
+                .and_then(Path::file_name)
+                .unwrap_or_default();
+            rejected_dir
+                .join(folder)
+                .join(original.file_name().unwrap_or_default())
+        },
+        PathBuf::from,
+    );
+    move_file(&from, original)
 }
 
 pub fn remove(state: &Shared, id: &str) -> Result<(), String> {
@@ -377,10 +392,14 @@ fn perform(state: &Shared, id: &str, view: &JobView, action: JobAction) {
         JobAction::MoveToRejected { local_path } => {
             let from = Path::new(&local_path);
             let to = rejected_path(Path::new(&state.settings().rejected_dir), from);
+            let item = view
+                .items
+                .iter()
+                .find(|i| i.local_path.as_deref() == Some(&local_path));
             if move_file(from, &to).is_ok()
-                && let Some(e) = lock(&state.jobs).get_mut(id)
+                && let Some(item) = item
             {
-                e.rejected.insert(local_path.clone(), to);
+                let _ = lock(&state.store).set_rejected(id, &item.name, &to.display().to_string());
             }
         }
         JobAction::Research { query } => {
@@ -776,6 +795,58 @@ mod tests {
             ),
             ("kdj", "Files", 0)
         );
+    }
+
+    #[test]
+    fn kept_file_comes_back_from_its_recorded_numbered_name() {
+        let dir = temp("keep");
+        let store = Store::in_memory().unwrap();
+        let rejected = dir.join("Rejected");
+        let original = dir.join("Album/03.flac");
+        fs::create_dir_all(rejected.join("Album")).unwrap();
+        fs::write(rejected.join("Album/03.flac"), b"older reject").unwrap();
+        fs::create_dir_all(original.parent().unwrap()).unwrap();
+        fs::write(&original, b"bad?").unwrap();
+
+        let to = rejected_path(&rejected, &original);
+        assert_eq!(to, rejected.join("Album/03 (1).flac"));
+        move_file(&original, &to).unwrap();
+        store
+            .set_rejected("j1", "03.flac", &to.display().to_string())
+            .unwrap();
+
+        move_back(&store, &rejected, "j1", "03.flac", &original).unwrap();
+        assert_eq!(fs::read(&original).unwrap(), b"bad?");
+        assert!(!to.exists());
+        assert_eq!(
+            fs::read(rejected.join("Album/03.flac")).unwrap(),
+            b"older reject"
+        );
+        assert_eq!(store.take_rejected("j1", "03.flac").unwrap(), None);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn move_back_without_a_record_uses_the_unnumbered_path_and_errors_when_missing() {
+        let dir = temp("keep-fallback");
+        let store = Store::in_memory().unwrap();
+        let rejected = dir.join("Rejected");
+        let original = dir.join("Album/01.flac");
+        fs::create_dir_all(rejected.join("Album")).unwrap();
+        fs::write(rejected.join("Album/01.flac"), b"x").unwrap();
+        move_back(&store, &rejected, "j1", "01.flac", &original).unwrap();
+        assert!(original.exists());
+        assert!(
+            move_back(
+                &store,
+                &rejected,
+                "j1",
+                "02.flac",
+                &dir.join("Album/02.flac")
+            )
+            .is_err()
+        );
+        fs::remove_dir_all(dir).unwrap();
     }
 
     #[test]
