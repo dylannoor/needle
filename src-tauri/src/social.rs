@@ -630,7 +630,7 @@ pub fn similar_users(state: &Shared) -> Result<Vec<String>, String> {
         (now != before).then_some(now)
     })
     .unwrap_or(before);
-    users.sort_by(|a, b| b.weight.cmp(&a.weight));
+    users.sort_by_key(|u| std::cmp::Reverse(u.weight));
     Ok(users.into_iter().map(|u| u.username).collect())
 }
 
