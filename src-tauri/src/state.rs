@@ -131,12 +131,11 @@ impl State {
     }
 
     pub fn profiles(&self) -> Vec<QualityProfile> {
-        let builtin = QualityProfile::lossless_first();
         let stored = lock(&self.store).profiles().unwrap_or_default();
-        let mut out = Vec::with_capacity(stored.len() + 1);
-        if !stored.iter().any(|p| p.id == builtin.id) {
-            out.push(builtin);
-        }
+        let mut out: Vec<_> = QualityProfile::builtins()
+            .into_iter()
+            .filter(|b| !stored.iter().any(|p| p.id == b.id))
+            .collect();
         out.extend(stored);
         out
     }

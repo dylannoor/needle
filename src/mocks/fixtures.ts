@@ -71,6 +71,20 @@ export const profiles = (): QualityProfile[] => [
     stuck: { noDataSecs: 120, queueWaitSecs: 600, maxSources: 5, wishlistWhenExhausted: true },
   },
   {
+    id: "storage-first",
+    name: "Storage first",
+    builtin: true,
+    tiers: [
+      { label: "MP3 320 kbps", codecs: ["mp3"], minBitDepth: null, minSampleRate: null, minBitrateKbps: 320, allowVbr: true },
+      { label: "FLAC", codecs: ["flac", "alac"], minBitDepth: 16, minSampleRate: 44100, minBitrateKbps: null, allowVbr: false },
+      { label: "AIFF", codecs: ["aiff"], minBitDepth: 16, minSampleRate: 44100, minBitrateKbps: null, allowVbr: false },
+    ],
+    maxQueue: 50,
+    preferComplete: true,
+    verify: { enabled: true, strictness: "normal", onFail: "delete" },
+    stuck: { noDataSecs: 120, queueWaitSecs: 600, maxSources: 5, wishlistWhenExhausted: true },
+  },
+  {
     id: "dj-mp3",
     name: "DJ crate (MP3)",
     builtin: false,

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/logo.png" alt="Needle" width="96" height="96">
+  <img src="docs/logo.svg" alt="Needle" width="112" height="112">
 </p>
 
 <h1 align="center">Needle</h1>
@@ -26,7 +26,9 @@ the FLAC you grabbed is an MP3 in disguise.
 Needle fixes the parts that cost you time.
 
 **Tell it what good enough means, once.** A quality profile is a ranked list
-like "FLAC 24-bit, then FLAC 16-bit, then MP3 320". Search results are filtered
+like "FLAC 24-bit, then FLAC 16-bit, then MP3 320". Needle comes with two:
+Lossless first, and Storage first for when disk space matters (MP3 320, then
+FLAC, then AIFF). Make your own from either. Search results are filtered
 by it, sources are picked by it, and every download is checked against it.
 
 **Releases, not files.** Results are grouped per folder into releases. When

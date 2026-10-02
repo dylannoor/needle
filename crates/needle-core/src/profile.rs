@@ -105,6 +105,37 @@ impl QualityProfile {
         }
     }
 
+    /// The built-in "Storage first" profile: the smallest good copy wins, so
+    /// MP3 320 before FLAC before AIFF.
+    #[must_use]
+    pub fn storage_first() -> Self {
+        let base = Self::lossless_first();
+        let tier = |label: &str, codecs: &[Codec]| Tier {
+            label: label.into(),
+            codecs: codecs.to_vec(),
+            min_bit_depth: Some(16),
+            min_sample_rate: Some(44_100),
+            min_bitrate_kbps: None,
+            allow_vbr: false,
+        };
+        QualityProfile {
+            id: "storage-first".into(),
+            name: "Storage first".into(),
+            tiers: vec![
+                base.tiers[2].clone(),
+                tier("FLAC", &[Codec::Flac, Codec::Alac]),
+                tier("AIFF", &[Codec::Aiff]),
+            ],
+            ..base
+        }
+    }
+
+    /// Every built-in profile, in the order the UI lists them.
+    #[must_use]
+    pub fn builtins() -> Vec<Self> {
+        vec![Self::lossless_first(), Self::storage_first()]
+    }
+
     /// Checks a profile the user edited. The error is a sentence for the UI.
     pub fn validate(&self) -> Result<(), String> {
         if self.name.trim().is_empty() {
@@ -261,5 +292,20 @@ mod tests {
             no_codec.validate(),
             Err("Tier \"FLAC 16-bit\" needs at least one format.".into())
         );
+    }
+    #[test]
+    fn storage_first_prefers_the_smallest_good_copy() {
+        let p = QualityProfile::storage_first();
+        assert!(p.builtin);
+        assert_eq!(p.validate(), Ok(()));
+        let labels: Vec<_> = p.tiers.iter().map(|t| t.label.as_str()).collect();
+        assert_eq!(labels, ["MP3 320 kbps", "FLAC", "AIFF"]);
+        let file = |path: &str, bitrate, depth| {
+            FileInfo::from_attributes(path.into(), 1, &[(0, bitrate), (4, 44_100), (5, depth)])
+        };
+        assert_eq!(p.tier_of(&[file("a.mp3", 320, 0)]), Some(0));
+        assert_eq!(p.tier_of(&[file("a.flac", 0, 24)]), Some(1));
+        assert_eq!(p.tier_of(&[file("a.aiff", 0, 16)]), Some(2));
+        assert_eq!(p.tier_of(&[file("a.wav", 0, 16)]), None);
     }
 }
