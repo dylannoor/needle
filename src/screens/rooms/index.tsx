@@ -193,7 +193,7 @@ function RoomSearchDialog({ room, open, onOpenChange }: { room: string; open: bo
     mutationFn: () => api.searchRoom(room, q.trim()),
     onSuccess: (id) => {
       onOpenChange(false);
-      nav.openSearch({ id, label: `${room}: ${q.trim()}`, profileId: null });
+      nav.openSearch({ id, label: `${room}: ${q.trim()}`, profileId: null, query: q.trim(), scope: { room } });
     },
   });
   return (

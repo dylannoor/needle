@@ -52,12 +52,16 @@ describe("mock ipc", () => {
     await expect(api.jobKeepFile("j2", "nope.flac")).rejects.toBe("That file is not part of this download.");
   });
 
-  it("logs in, rejects a wrong password and logs out", async () => {
+  it("answers login with connecting and reports the outcome as an event", async () => {
     await api.logout();
-    await expect(api.login("dj", "wrong", false)).rejects.toMatch(/doesn't match/);
+    const seen: string[] = [];
+    const off = on("session", (s) => seen.push(`${s.state}:${s.error ?? ""}`));
     await expect(api.login("", "x", false)).rejects.toBe("Enter your username and password.");
-    const s = await api.login("dj", "secret", true);
-    expect(s).toMatchObject({ state: "online", username: "dj", remembered: true });
+    expect(await api.login("dj", "wrong", false)).toMatchObject({ state: "connecting" });
+    await vi.waitFor(() => expect(seen.at(-1)).toMatch(/^error:That password doesn't match/));
+    expect(await api.login("dj", "secret", true)).toMatchObject({ state: "connecting", remembered: true });
+    await vi.waitFor(() => expect(seen.at(-1)).toBe("online:"));
+    off();
     expect((await api.logout()).state).toBe("offline");
   });
 

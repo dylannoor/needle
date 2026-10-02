@@ -243,7 +243,7 @@ export function createMockBackend(opts: { latency?: number; simulate?: boolean }
         ...s.shares,
         folders: s.shares.folders.map((f) =>
           f.path === str(a, "path")
-            ? { ...f, visibility, status: visibility === "nobody" ? { kind: "notShared" } : f.status.kind === "notShared" ? { kind: "scanned", at_ms: Date.now() } : f.status }
+            ? { ...f, visibility, status: visibility !== "everyone" ? { kind: "notShared" } : f.status.kind === "notShared" ? { kind: "scanned", at_ms: Date.now() } : f.status }
             : f,
         ),
       };
@@ -252,7 +252,7 @@ export function createMockBackend(opts: { latency?: number; simulate?: boolean }
     shares_rescan: () => {
       s.shares = {
         ...s.shares,
-        folders: s.shares.folders.map((f) => (f.visibility === "nobody" ? f : { ...f, status: { kind: "scanning", percent: 0 } })),
+        folders: s.shares.folders.map((f) => (f.visibility !== "everyone" ? f : { ...f, status: { kind: "scanning", percent: 0 } })),
       };
       later(1500, () => {
         s.shares = {

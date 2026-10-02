@@ -18,9 +18,10 @@ import { ago, bytes, num, plural, speed } from "../../lib/format";
 import { api, errorText } from "../../lib/ipc";
 import { keys, useSaveSettings, useSettings, useShares, useUploads } from "../../lib/queries";
 
-const cols = "grid grid-cols-[minmax(0,1fr)_80px_80px_150px_170px] items-center gap-4 px-3";
+const cols = "grid grid-cols-[minmax(0,1fr)_80px_80px_210px_150px] items-center gap-4 px-3";
 
-export const visibilityLabel: Record<Visibility, string> = { everyone: "Everyone", buddies: "Buddies only", nobody: "Nobody" };
+// Buddies-only sharing isn't supported by the network library yet; say so instead of pretending.
+export const visibilityLabel: Record<Visibility, string> = { everyone: "Everyone", buddies: "Buddies only (not shared yet)", nobody: "Nobody" };
 const visibilityOptions = (Object.keys(visibilityLabel) as Visibility[]).map((v) => ({ value: v, label: visibilityLabel[v] }));
 
 function scanText(s: ScanStatus): { tone: Tone; text: string } {
@@ -116,7 +117,7 @@ export function LibraryScreen() {
               const st = scanText(f.status);
               return (
                 <div key={f.path} className={cn(cols, "h-[54px] border-b border-line-soft")}>
-                  <span className={cn("truncate", f.visibility === "nobody" ? "text-faint" : "text-text")} title={f.path}>
+                  <span className={cn("truncate", f.status.kind === "notShared" ? "text-faint" : "text-text")} title={f.path}>
                     {f.path}
                   </span>
                   <span className="text-right">{num(f.files)}</span>
@@ -224,10 +225,10 @@ function UploadRules() {
       <Field label="Upload slots" htmlFor="slots">
         <Stepper id="slots" value={settings.uploadSlots} min={0} max={20} incLabel="More slots" decLabel="Fewer slots" onChange={(uploadSlots) => save.mutate({ uploadSlots })} />
       </Field>
-      <Field label="Upload speed limit" htmlFor="limit" hint="0 means no limit">
+      <Field label="Upload speed limit" htmlFor="limit" hint="Saved, but not enforced yet">
         <Stepper id="limit" unit="MB/s" value={Math.round(settings.uploadLimitKbps / 1000)} min={0} max={100} incLabel="Raise limit" decLabel="Lower limit" onChange={(v) => save.mutate({ uploadLimitKbps: v * 1000 })} />
       </Field>
-      <Field label="Buddies go first in the queue" labelId="buddies-first" last>
+      <Field label="Buddies go first in the queue" labelId="buddies-first" hint="Saved, but has no effect yet" last>
         <Switch aria-labelledby="buddies-first" checked={settings.buddiesFirst} onCheckedChange={(buddiesFirst) => save.mutate({ buddiesFirst })} />
       </Field>
       {save.isError && <InlineError message={errorText(save.error)} />}

@@ -353,7 +353,7 @@ export const shares = (): SharesView => ({
   folders: [
     { path: "~/Music/Library", visibility: "everyone", files: 18402, bytes: 642e9, status: { kind: "scanned", at_ms: NOW - 2 * min } },
     { path: "~/Music/Rips", visibility: "everyone", files: 1204, bytes: 88e9, status: { kind: "scanning", percent: 64 } },
-    { path: "~/Music/Promos", visibility: "buddies", files: 312, bytes: 9.4e9, status: { kind: "scanned", at_ms: NOW - 3 * 60 * min } },
+    { path: "~/Music/Promos", visibility: "buddies", files: 312, bytes: 9.4e9, status: { kind: "notShared" } },
     { path: "~/Music/Library/Private", visibility: "nobody", files: 233, bytes: 7.1e9, status: { kind: "notShared" } },
   ],
   sharedFiles: 19606,

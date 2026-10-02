@@ -23,7 +23,7 @@ export function jobStatus(j: JobView, now = Date.now()): { tone: Tone; text: str
     case "recovering":
       return { tone: "warn", text: s.reason, sub: j.detail };
     case "queued":
-      return { tone: "idle", text: s.position !== null ? `Position ${s.position} in queue` : "Waiting in queue", sub: j.detail };
+      return { tone: "idle", text: s.position !== null ? `Position ${s.position} in queue` : "Queued", sub: j.detail };
     case "waiting":
       return { tone: "idle", text: "Waiting for a reply", sub: j.detail };
     case "verifying":

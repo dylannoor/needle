@@ -31,8 +31,7 @@ describe("Search results", () => {
     await screen.findByText("Hidden by your profile");
     expect(spy).toHaveBeenLastCalledWith(expect.any(String), "lossless-first", true);
     expect(rows()).toHaveLength(10);
-    expect(screen.getByText("Queue of 120, your limit is 50")).toBeInTheDocument();
-    expect(screen.getAllByText("Below your profile")).toHaveLength(3);
+    expect(screen.getAllByText("Below your profile")).toHaveLength(4);
 
     await user.click(screen.getByRole("button", { name: "Hide the hidden files" }));
     await waitFor(() => expect(screen.queryByText("Hidden by your profile")).not.toBeInTheDocument());

@@ -123,7 +123,7 @@ function UserSearchDialog({ username, open, onOpenChange }: { username: string; 
     mutationFn: () => api.searchUser(username, q.trim()),
     onSuccess: (id) => {
       onOpenChange(false);
-      nav.openSearch({ id, label: `${username}: ${q.trim()}`, profileId: null });
+      nav.openSearch({ id, label: `${username}: ${q.trim()}`, profileId: null, query: q.trim(), scope: { user: username } });
     },
   });
   return (

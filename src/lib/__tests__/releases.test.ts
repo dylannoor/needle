@@ -46,13 +46,15 @@ describe("isComplete and sizeText", () => {
 
 describe("hiddenReason", () => {
   const hidden = homeworkHidden();
+  const withQueue = (q: number | null) => ({ ...hidden[0], best: { ...hidden[0].best, source: { ...hidden[0].best.source, queueLen: q } } });
   it("names the queue when it is over the profile limit", () => {
-    const longQueue = hidden.find((r) => r.best.source.queueLen === 120)!;
-    expect(hiddenReason(longQueue, profile)).toBe("Queue of 120, your limit is 50");
+    expect(hiddenReason(withQueue(120), profile)).toBe("Queue of 120, your limit is 50");
+  });
+  it("does not guess when the queue length is unknown", () => {
+    expect(hiddenReason(withQueue(null), profile)).toBe("Below your profile");
   });
   it("does not blame a queue exactly at the limit", () => {
-    const atLimit = { ...hidden[0], best: { ...hidden[0].best, source: { ...hidden[0].best.source, queueLen: 50 } } };
-    expect(hiddenReason(atLimit, profile)).toBe("Below your profile");
+    expect(hiddenReason(withQueue(50), profile)).toBe("Below your profile");
   });
   it("falls back to the format when no profile is loaded", () => {
     expect(hiddenReason(hidden[2], undefined)).toBe("Below your profile");
@@ -67,5 +69,15 @@ describe("trackTitle", () => {
     ["2 Unlimited - No Limit.mp3", "2 Unlimited - No Limit"],
   ])("%s -> %s", (path, title) => {
     expect(trackTitle(path)).toBe(title);
+  });
+});
+
+describe("availability", () => {
+  it("says a busy peer has no free slot when the queue length is unknown", async () => {
+    const { availability } = await import("../releases");
+    const busy = releases.find((r) => r.best.source.username === "kdj_archive")!;
+    expect(availability(busy)).toEqual({ tone: "idle", text: "No free slot · 840 KB/s" });
+    expect(availability({ ...busy, best: { ...busy.best, source: { ...busy.best.source, queueLen: 3 } } }).text).toBe("Queue 3 · 840 KB/s");
+    expect(availability(releases[0])).toEqual({ tone: "ok", text: "Free · 2.1 MB/s" });
   });
 });

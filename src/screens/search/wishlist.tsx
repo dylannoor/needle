@@ -86,7 +86,7 @@ export function WishlistPanel() {
               </span>
               <span className="flex justify-end gap-2">
                 {w.searchId && (
-                  <Button size="sm" onClick={() => nav.openSearch({ id: w.searchId as string, label: w.query, profileId: null })}>
+                  <Button size="sm" onClick={() => nav.openSearch({ id: w.searchId as string, label: w.query, profileId: null, query: w.query })}>
                     Open results
                   </Button>
                 )}

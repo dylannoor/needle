@@ -34,7 +34,7 @@ export function availability(r: Release): { tone: Tone; text: string } {
   const s = r.best.source;
   return s.freeSlot
     ? { tone: "ok", text: `Free · ${speed(s.avgSpeed)}` }
-    : { tone: "idle", text: `Queue ${s.queueLen ?? "?"} · ${speed(s.avgSpeed)}` };
+    : { tone: "idle", text: `${s.queueLen === null ? "No free slot" : `Queue ${s.queueLen}`} · ${speed(s.avgSpeed)}` };
 }
 
 export function sizeText(r: Release): { text: string; partial: boolean } {

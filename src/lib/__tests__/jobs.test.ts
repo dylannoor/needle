@@ -20,7 +20,9 @@ describe("jobStatus", () => {
     expect(jobStatus(j, j.log[0].atMs + 6 * 60_000).text).toBe("Downloading 3 of 6");
   });
   it("shows queue position and failures", () => {
-    expect(jobStatus(byId("j4")).text).toBe("Position 14 in queue");
+    // The library often doesn't know the position.
+    expect(jobStatus(byId("j4")).text).toBe("Queued");
+    expect(jobStatus({ ...byId("j4"), status: { kind: "queued", position: 14 } }).text).toBe("Position 14 in queue");
     expect(jobStatus({ ...byId("j1"), status: { kind: "failed", reason: "No source left" } })).toMatchObject({ tone: "bad", sub: "No source left" });
   });
 });

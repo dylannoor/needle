@@ -128,7 +128,7 @@ export function NetworkPage() {
                     : "Needle hasn't checked your port yet."}
               </span>
             </div>
-            <Field label="Listening port" htmlFor="port" hint="Applies after you log in again">
+            <Field label="Listening port" htmlFor="port" hint="Applies the next time you log in">
               <Stepper id="port" incLabel="Next port" decLabel="Previous port" value={s.listenPort} min={1024} max={65535} onChange={(listenPort) => save({ listenPort })} className="[&_input]:w-16" />
             </Field>
             <Field label="Open the port on my router automatically" labelId="upnp" hint="Uses UPnP or NAT-PMP" last>

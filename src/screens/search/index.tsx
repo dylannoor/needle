@@ -34,7 +34,7 @@ export function SearchScreen() {
   const start = useMutation({
     mutationFn: (q: string) => api.searchStart(q.trim(), profileId),
     onSuccess: (id, q) => {
-      nav.openSearch({ id, label: q.trim(), profileId });
+      nav.openSearch({ id, label: q.trim(), profileId, query: q.trim() });
       setWishlist(false);
       void qc.invalidateQueries({ queryKey: keys.history });
     },
@@ -130,6 +130,15 @@ function Results({ tab, profileId, profile }: { tab: SearchTab; profileId: strin
   const [completeOnly, setCompleteOnly] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  const nav = useNav();
+  // The backend keeps the last 20 searches; an older tab has to run again.
+  const rerun = useMutation({
+    mutationFn: () => {
+      const s = tab.scope;
+      return s && "user" in s ? api.searchUser(s.user, tab.query) : s && "room" in s ? api.searchRoom(s.room, tab.query) : api.searchStart(tab.query, profileId);
+    },
+    onSuccess: (id) => nav.replaceSearch(tab.id, { ...tab, id }),
+  });
   const view = useQuery({
     queryKey: keys.searchView(tab.id, profileId, showHidden),
     queryFn: () => api.searchView(tab.id, profileId, showHidden),
@@ -152,7 +161,8 @@ function Results({ tab, profileId, profile }: { tab: SearchTab; profileId: strin
   if (view.isError && !data) {
     return (
       <div className="grow p-7">
-        <InlineError message={errorText(view.error)} onRetry={() => view.refetch()} />
+        <InlineError message={errorText(view.error)} onRetry={() => rerun.mutate()} retryLabel="Search again" />
+        {rerun.isError && <div className="pt-3"><InlineError message={errorText(rerun.error)} /></div>}
       </div>
     );
   }

@@ -11,6 +11,9 @@ export interface SearchTab {
   label: string;
   /** Profile picked for this tab; null = the active profile from settings. */
   profileId: string | null;
+  /** What to run again when the backend has dropped the search. */
+  query: string;
+  scope?: { user: string } | { room: string };
 }
 
 interface Nav {
@@ -22,6 +25,7 @@ interface Nav {
   closeSearch: (id: string) => void;
   setActiveSearch: (id: string | null) => void;
   setTabProfile: (id: string, profileId: string | null) => void;
+  replaceSearch: (oldId: string, tab: SearchTab) => void;
   usersView: UsersView;
   setUsersView: (v: UsersView) => void;
   openUser: (username: string) => void;
@@ -59,6 +63,10 @@ export function NavProvider({ children, initial = "search" }: { children: ReactN
     },
     [searchTabs, activeSearch],
   );
+  const replaceSearch = useCallback((oldId: string, tab: SearchTab) => {
+    setTabs((t) => t.map((x) => (x.id === oldId ? tab : x)));
+    setActiveSearch(tab.id);
+  }, []);
   const setTabProfile = useCallback((id: string, profileId: string | null) => setTabs((t) => t.map((x) => (x.id === id ? { ...x, profileId } : x))), []);
 
   const value = useMemo<Nav>(
@@ -71,6 +79,7 @@ export function NavProvider({ children, initial = "search" }: { children: ReactN
       closeSearch,
       setActiveSearch,
       setTabProfile,
+      replaceSearch,
       usersView,
       setUsersView,
       openUser: (username) => {
@@ -91,7 +100,7 @@ export function NavProvider({ children, initial = "search" }: { children: ReactN
       settingsPage,
       setSettingsPage,
     }),
-    [screen, searchTabs, activeSearch, openSearch, closeSearch, setTabProfile, usersView, conversation, room, settingsPage],
+    [screen, searchTabs, activeSearch, openSearch, closeSearch, setTabProfile, replaceSearch, usersView, conversation, room, settingsPage],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
