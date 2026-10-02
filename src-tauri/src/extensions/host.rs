@@ -1013,7 +1013,8 @@ mod tests {
     #[test]
     fn first_party_extensions_have_valid_manifests() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../extensions");
-        let mut host = Host::new("/home/me".into(), "/nonexistent".into(), Some(root));
+        let home = std::env::temp_dir().join("needle-home");
+        let mut host = Host::new(home, std::env::temp_dir().join("needle-none"), Some(root));
         host.load();
         let list = host.list();
         assert!(list.iter().any(|e| e.manifest.id == "rekordbox"));

@@ -140,7 +140,11 @@ pub(crate) mod tests {
     }
 
     fn home() -> PathBuf {
-        PathBuf::from("/home/me")
+        if cfg!(windows) {
+            PathBuf::from(r"C:\home\me")
+        } else {
+            PathBuf::from("/home/me")
+        }
     }
 
     #[test]
@@ -153,8 +157,9 @@ pub(crate) mod tests {
         );
         assert_eq!(
             parse("fs:write:~/Music", &h),
-            Ok(Permission::FsWrite("/home/me/Music".into()))
+            Ok(Permission::FsWrite(h.join("Music")))
         );
+        #[cfg(unix)]
         assert_eq!(
             parse("fs:read:/data/./x/../y", &h),
             Ok(Permission::FsRead("/data/y".into()))
@@ -186,11 +191,12 @@ pub(crate) mod tests {
     #[test]
     fn absolute_expands_home_and_folds_dots() {
         let h = home();
-        assert_eq!(absolute("~", &h).unwrap(), PathBuf::from("/home/me"));
+        assert_eq!(absolute("~", &h).unwrap(), h);
         assert_eq!(
             absolute("~/Music/../Music/./a", &h).unwrap(),
-            PathBuf::from("/home/me/Music/a")
+            h.join("Music").join("a")
         );
+        #[cfg(unix)]
         assert_eq!(absolute("/../../etc", &h).unwrap(), PathBuf::from("/etc"));
         assert!(absolute("~user/x", &h).is_err());
         assert!(absolute("./x", &h).is_err());
