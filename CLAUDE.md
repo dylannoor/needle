@@ -1,8 +1,7 @@
 # Needle
 
-Open source Soulseek client (Tauri v2, Rust, React). GPL-3.0-or-later. This is
-a personal open source project, not a Bonsai Software repo: no Bonsai ERP
-tracking, and the Bonsai PR skill does not apply here. The rules below do.
+Open source Soulseek client (Tauri v2, Rust, React). GPL-3.0-or-later. These
+notes are for anyone working on the code, people and coding agents alike.
 
 ## Layout
 

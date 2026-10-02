@@ -104,7 +104,7 @@ fn with_host(app: &AppHandle) -> Result<MutexGuard<'_, Host>, String> {
     Ok(lock(state.inner()))
 }
 
-// ponytail: one lock around all extension I/O; per-extension locks if calls pile up.
+// One lock around all extension I/O. Per-extension locks if calls ever pile up.
 fn lock(state: &State) -> MutexGuard<'_, Host> {
     state.lock().unwrap_or_else(|e| e.into_inner())
 }

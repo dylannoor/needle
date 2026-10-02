@@ -50,8 +50,7 @@ ranking), `profile` (tier matching), `jobs` (the fallback state machine, events
 in and actions out) and `verify` (symphonia + rustfft). `src-tauri` wraps
 soulseek-rs-lib (MIT, full modern protocol), runs the jobs, persists state in
 SQLite and exposes the commands and events in `docs/ipc.md`. The frontend is
-React with components styled from `src/styles/tokens.css`; the screens follow
-the mockups in `docs/design/`.
+React with components styled from `src/styles/tokens.css`.
 
 ## Extensions
 

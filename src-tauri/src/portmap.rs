@@ -1,6 +1,6 @@
 //! Best-effort UPnP port mapping for the listen port, renewed every half lease
 //! and removed when the mapper is dropped.
-// ponytail: UPnP only; add NAT-PMP (soulseek-rs/src/port_mapping/nat_pmp.rs) if routers without UPnP matter.
+// UPnP only. NAT-PMP (see soulseek-rs/src/port_mapping/nat_pmp.rs) would help routers without UPnP.
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, UdpSocket};
 use std::sync::Arc;
