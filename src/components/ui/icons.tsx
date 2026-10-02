@@ -1,5 +1,5 @@
-// Icons. Rail icons and the logo are drawn to match the mockups; the rest come
-// from lucide with the same 1.6 stroke.
+// Icons. Most rail icons and the logo are drawn to match the mockups; the rest
+// come from lucide with the same 1.6 stroke.
 import * as L from "lucide-react";
 import type { LucideIcon, LucideProps } from "lucide-react";
 import type { SVGProps } from "react";
@@ -86,17 +86,8 @@ export const RailIcons = {
       <path d="M18 14c2 .8 3 2.8 3 6" />
     </svg>
   ),
-  extensions: (p: P) => (
-    <svg {...base(p)}>
-      <path d="M9 4h6v4h4v6h-4v6H9v-6H5V8h4z" />
-    </svg>
-  ),
-  settings: (p: P) => (
-    <svg {...base(p)}>
-      <circle cx="12" cy="12" r="3" />
-      <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1" />
-    </svg>
-  ),
+  extensions: (p: P) => <L.Puzzle size={17} strokeWidth={1.6} aria-hidden="true" className="shrink-0" {...(p as LucideProps)} />,
+  settings: (p: P) => <L.Settings size={17} strokeWidth={1.6} aria-hidden="true" className="shrink-0" {...(p as LucideProps)} />,
 };
 
 export const Logo = ({ size = 22 }: { size?: number }) => (
