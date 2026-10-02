@@ -149,7 +149,6 @@ extension that holds `events:<name>`.
 | `fs.mkdir` | `fs:write:<dir>` | `{ path }` → `null` |
 | `storage.get` / `storage.set` | (always) | `{ key }` / `{ key, value }`, per-extension JSON store |
 | `notify` | `notify` | `{ title, body }` → `null` |
-| `jobs.list` | `jobs:read` | → `JobView[]` |
 | `settings.get` | (always) | → the extension's own settings object |
 
 `<dir>` may start with `~`. A path is allowed when, after resolving `~`, `..`
