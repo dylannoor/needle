@@ -133,7 +133,7 @@ Event `wishlist:hit` → `WishItem`.
 | `extension_set_enabled` | `id, enabled` | `ExtensionInfo[]` |
 | `extension_install` | `dir` | `ExtensionInfo[]` |
 | `extension_uninstall` | `id` | `ExtensionInfo[]` |
-| `extension_source` | `id, file` | `string` (worker/panel source, for the runtime to load) |
+| `extension_source` | `id, file` | `string`: the source of `main`, `panel`, or a `.js`/`.mjs` module inside the extension folder (for relative imports) |
 | `extension_call` | `id, method, args: any` | `any` (permission-checked host API) |
 
 Event `ext:event` → `{ id: string, event: ExtensionEvent }`, one per enabled
@@ -153,3 +153,7 @@ extension that holds `events:<name>`.
 
 `<dir>` may start with `~`. A path is allowed when, after resolving `~`, `..`
 and symlinks, it sits inside a granted directory.
+
+Limits: files up to 20 MB, storage up to 5 MB per extension, keys up to 200
+characters. `storage.set` with `value: null` removes the key. `notify` needs a
+`title`; `body` is optional. See docs/extensions.md for the full guide.

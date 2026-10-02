@@ -1,0 +1,88 @@
+<style>
+  form { display: grid; gap: 16px; max-width: 520px; }
+  .row { display: flex; align-items: center; gap: 10px; }
+  .row label { margin: 0; color: var(--text); }
+  .hint { margin: 6px 0 0; font-size: 13px; color: var(--faint); }
+  .status { min-height: 20px; margin: 0; font-size: 13px; }
+  .status.bad { color: var(--bad); }
+  .status.ok { color: var(--ok); }
+  h2 { font-size: 15px; font-weight: 600; margin: 28px 0 8px; color: var(--text); }
+  ol { padding-left: 20px; margin: 0; }
+  li { margin-bottom: 6px; }
+</style>
+
+<form id="form">
+  <div>
+    <label for="xmlPath">XML file</label>
+    <input id="xmlPath" name="xmlPath" spellcheck="false" autocomplete="off" />
+    <p class="hint">Must be inside your Music folder. Changes apply on the next download or restart.</p>
+  </div>
+  <div>
+    <label for="playlistName">Playlist name</label>
+    <input id="playlistName" name="playlistName" autocomplete="off" />
+  </div>
+  <div class="row">
+    <input id="perRelease" name="perRelease" type="checkbox" />
+    <label for="perRelease">One playlist per release, in a folder with this name</label>
+  </div>
+  <div class="row">
+    <button type="submit">Save</button>
+    <p id="status" class="status" role="status"></p>
+  </div>
+</form>
+
+<h2>Import in Rekordbox</h2>
+<ol>
+  <li>Open Preferences, then Advanced, then Database, and find "rekordbox xml".</li>
+  <li>Set Imported Library to the XML file above.</li>
+  <li>In the tree on the left, open "rekordbox xml" and find the <span id="where">Needle</span> playlist. No "rekordbox xml" in the tree? Turn it on under Preferences, View, Layout.</li>
+  <li>Drag its tracks into your Collection. Rekordbox reloads the file when you click the refresh icon next to "rekordbox xml".</li>
+</ol>
+
+<script>
+  const DEFAULTS = { xmlPath: "~/Music/Needle/rekordbox.xml", playlistName: "Needle", perRelease: false };
+  const form = document.getElementById("form");
+  const status = document.getElementById("status");
+  const where = document.getElementById("where");
+
+  function show(text, kind) {
+    status.textContent = text;
+    status.className = `status ${kind || ""}`;
+  }
+
+  function fill(s) {
+    form.xmlPath.value = s.xmlPath;
+    form.playlistName.value = s.playlistName;
+    form.perRelease.checked = s.perRelease;
+    where.textContent = s.playlistName || "Needle";
+  }
+
+  needle.settings
+    .get()
+    .then((s) => fill({ ...DEFAULTS, ...(s || {}) }))
+    .catch((e) => {
+      fill(DEFAULTS);
+      show(e.message, "bad");
+    });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const xmlPath = form.xmlPath.value.trim();
+    if (!xmlPath.endsWith(".xml") || !(xmlPath.startsWith("~/") || xmlPath.startsWith("/") || /^[A-Za-z]:[\\/]/.test(xmlPath))) {
+      show("Use a full path to an .xml file, like ~/Music/Needle/rekordbox.xml.", "bad");
+      return;
+    }
+    const next = {
+      xmlPath,
+      playlistName: form.playlistName.value.trim() || "Needle",
+      perRelease: form.perRelease.checked,
+    };
+    try {
+      await needle.settings.set(next);
+      fill(next);
+      show("Saved", "ok");
+    } catch (err) {
+      show(err.message, "bad");
+    }
+  });
+</script>

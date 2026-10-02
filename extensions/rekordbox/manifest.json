@@ -1,0 +1,10 @@
+{
+  "id": "rekordbox",
+  "name": "Rekordbox",
+  "version": "1.0.0",
+  "description": "Adds every verified download to a Needle playlist you can import in Rekordbox.",
+  "author": "Needle",
+  "main": "worker.js",
+  "panel": "panel.html",
+  "permissions": ["events:download.verified", "events:download.completed", "fs:write:~/Music", "notify"]
+}
