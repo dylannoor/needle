@@ -76,7 +76,11 @@ pub enum Visibility {
 }
 
 #[derive(Serialize, Deserialize, TS, Clone, Debug, PartialEq)]
-#[serde(tag = "kind", rename_all = "camelCase")]
+#[serde(
+    tag = "kind",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
 #[ts(export)]
 pub enum ScanStatus {
     Scanned {
@@ -104,6 +108,16 @@ pub struct ShareFolder {
     pub status: ScanStatus,
 }
 
+/// One remote file to check against the local library (`owned_check`).
+#[derive(Serialize, Deserialize, TS, Clone, Debug, PartialEq)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct OwnedQuery {
+    pub path: String,
+    #[ts(type = "number")]
+    pub size: u64,
+}
+
 #[derive(Serialize, Deserialize, TS, Clone, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
@@ -118,7 +132,11 @@ pub struct SharesView {
 }
 
 #[derive(Serialize, Deserialize, TS, Clone, Debug, PartialEq)]
-#[serde(tag = "kind", rename_all = "camelCase")]
+#[serde(
+    tag = "kind",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
 #[ts(export)]
 pub enum UploadState {
     Queued { position: u32 },
@@ -274,7 +292,11 @@ pub struct RoomView {
 }
 
 #[derive(Serialize, Deserialize, TS, Clone, Debug, PartialEq)]
-#[serde(tag = "kind", rename_all = "camelCase")]
+#[serde(
+    tag = "kind",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
 #[ts(export)]
 pub enum RoomEventPayload {
     Message {

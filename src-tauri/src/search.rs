@@ -60,16 +60,6 @@ impl Searches {
     pub fn last(&self) -> Option<&SearchEntry> {
         self.order.iter().rev().find_map(|id| self.entries.get(id))
     }
-
-    /// Size of a remote file seen in any kept search.
-    pub fn size_of(&self, path: &str) -> Option<u64> {
-        self.entries
-            .values()
-            .flat_map(|e| &e.results)
-            .flat_map(|r| &r.files)
-            .find(|f| f.path == path)
-            .map(|f| f.size)
-    }
 }
 
 pub fn file_info(file: &soulseek_rs::File) -> FileInfo {

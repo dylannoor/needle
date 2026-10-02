@@ -101,6 +101,9 @@ pub struct Release {
     /// `track_count` means this copy is incomplete.
     pub expected_tracks: usize,
     pub score: f64,
+    /// Why the release is hidden, in plain English; `None` when it is shown.
+    #[serde(default)]
+    pub hidden_reason: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, TS, Clone, Debug, Default, PartialEq)]
@@ -190,6 +193,9 @@ pub struct StuckRules {
 pub struct QualityProfile {
     pub id: String,
     pub name: String,
+    /// The profile Needle ships with; it cannot be deleted.
+    #[serde(default)]
+    pub builtin: bool,
     /// Best first.
     pub tiers: Vec<Tier>,
     /// Skip peers whose queue is longer than this (when known).
@@ -228,7 +234,11 @@ pub struct Verdict {
 
 /// What the backend reports about one requested file.
 #[derive(Serialize, Deserialize, TS, Clone, Debug, PartialEq)]
-#[serde(tag = "kind", rename_all = "camelCase")]
+#[serde(
+    tag = "kind",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
 #[ts(export)]
 pub enum TransferStatus {
     Queued {
@@ -252,7 +262,11 @@ pub enum TransferStatus {
 }
 
 #[derive(Serialize, Deserialize, TS, Clone, Debug, PartialEq)]
-#[serde(tag = "kind", rename_all = "camelCase")]
+#[serde(
+    tag = "kind",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
 #[ts(export)]
 pub enum ItemState {
     Pending,
@@ -281,7 +295,11 @@ pub struct ItemView {
 }
 
 #[derive(Serialize, Deserialize, TS, Clone, Debug, PartialEq)]
-#[serde(tag = "kind", rename_all = "camelCase")]
+#[serde(
+    tag = "kind",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
 #[ts(export)]
 pub enum JobStatus {
     Waiting,

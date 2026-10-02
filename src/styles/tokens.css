@@ -21,6 +21,9 @@
   --faint: #84827c;
   --idle: #5a5c60;
   --link-line: #55575b;
+  /* Checkbox and radio outlines: 3.5:1 against --bg. */
+  --control-line: #6a6c70;
+  --control-line-hover: #8f9196;
 
   --focus: #7fa8ff;
   --selection: #34446a;

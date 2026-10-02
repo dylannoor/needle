@@ -15,10 +15,15 @@ const rows = () => within(screen.getByRole("listbox", { name: "Releases" })).get
 
 describe("Search results", () => {
   it("shows matching releases with a summary and owned marker", async () => {
+    const spy = vi.spyOn(api, "ownedCheck");
     await searchHomework();
     expect(screen.getByText("6 releases")).toBeInTheDocument();
     expect(rows()).toHaveLength(6);
     expect((await screen.findAllByText("You have this")).length).toBe(2);
+    // owned_check gets one {path, size} per release, the first audio file.
+    const files = spy.mock.calls.at(-1)![0];
+    expect(files).toHaveLength(6);
+    expect(files[0]).toEqual({ path: expect.stringMatching(/01 - Daftendirekt\.flac$/), size: expect.any(Number) });
     // The first release is selected and detailed in the aside.
     const aside = screen.getByRole("complementary", { name: "Selected release" });
     expect(within(aside).getByText(/one of 4 identical sources/)).toBeInTheDocument();
@@ -31,7 +36,9 @@ describe("Search results", () => {
     await screen.findByText("Hidden by your profile");
     expect(spy).toHaveBeenLastCalledWith(expect.any(String), "lossless-first", true);
     expect(rows()).toHaveLength(10);
-    expect(screen.getAllByText("Below your profile")).toHaveLength(4);
+    // Reasons come from the backend's hiddenReason.
+    expect(screen.getByText("AAC is not in any tier")).toBeInTheDocument();
+    expect(screen.getByText("22.05 kHz, your FLAC tiers need 44.1 kHz or higher")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Hide the hidden files" }));
     await waitFor(() => expect(screen.queryByText("Hidden by your profile")).not.toBeInTheDocument());

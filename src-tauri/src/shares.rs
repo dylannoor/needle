@@ -7,7 +7,7 @@ use std::collections::HashSet;
 use std::path::Path;
 use std::thread;
 
-use needle_core::api::{ScanStatus, ShareFolder, SharesView, Visibility};
+use needle_core::api::{OwnedQuery, ScanStatus, ShareFolder, SharesView, Visibility};
 use needle_core::files::basename;
 use walkdir::WalkDir;
 
@@ -18,7 +18,6 @@ pub struct ShareState {
     folders: Vec<ShareFolder>,
     unreadable: Vec<String>,
     owned: HashSet<(String, u64)>,
-    owned_names: HashSet<String>,
     scan: u64,
 }
 
@@ -165,7 +164,6 @@ fn run_scan(state: &Shared, generation: u64) {
         if s.scan != generation {
             return;
         }
-        s.owned_names = owned.iter().map(|(n, _)| n.clone()).collect();
         s.owned = owned;
         s.unreadable = unreadable;
     }
@@ -209,25 +207,14 @@ pub fn set_visibility(
     Ok(rescan(state))
 }
 
-/// Whether each remote path is a file you already have: by name and size when
-/// the size is known from a kept search, by name alone otherwise.
-pub fn owned_check(state: &Shared, paths: &[String]) -> Vec<bool> {
-    let sizes: Vec<Option<u64>> = {
-        let searches = lock(&state.searches);
-        paths.iter().map(|p| searches.size_of(p)).collect()
-    };
+/// Whether you already have a file with this name (any case) and size.
+pub fn is_owned(owned: &HashSet<(String, u64)>, q: &OwnedQuery) -> bool {
+    owned.contains(&(basename(&q.path).to_lowercase(), q.size))
+}
+
+pub fn owned_check(state: &Shared, files: &[OwnedQuery]) -> Vec<bool> {
     let s = lock(&state.shares);
-    paths
-        .iter()
-        .zip(sizes)
-        .map(|(path, size)| {
-            let name = basename(path).to_lowercase();
-            match size {
-                Some(size) => s.owned.contains(&(name, size)),
-                None => s.owned_names.contains(&name),
-            }
-        })
-        .collect()
+    files.iter().map(|q| is_owned(&s.owned, q)).collect()
 }
 
 #[cfg(test)]
@@ -253,6 +240,19 @@ mod tests {
             vec![("01 intro.flac".into(), 5), ("cover.jpg".into(), 2)]
         );
         fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn owned_matches_lowercase_basename_and_exact_size() {
+        let owned: HashSet<(String, u64)> = [("01 intro.flac".to_string(), 5)].into();
+        let q = |path: &str, size| OwnedQuery {
+            path: path.into(),
+            size,
+        };
+        assert!(is_owned(&owned, &q(r"@@music\Album\01 Intro.FLAC", 5)));
+        assert!(is_owned(&owned, &q("01 intro.flac", 5)));
+        assert!(!is_owned(&owned, &q(r"@@music\Album\01 Intro.flac", 6)));
+        assert!(!is_owned(&owned, &q(r"@@music\Album\02 Intro.flac", 5)));
     }
 
     #[test]

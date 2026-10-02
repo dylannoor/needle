@@ -3,7 +3,7 @@ import { useState } from "react";
 import type { Release } from "../../bindings/Release";
 import { AsideTitle } from "../../components/layout";
 import { Button } from "../../components/ui/button";
-import { Check } from "../../components/ui/input";
+import { Checkbox } from "../../components/ui/checkbox";
 import { InlineError } from "../../components/ui/states";
 import { bytes } from "../../lib/format";
 import { api, errorText } from "../../lib/ipc";
@@ -55,10 +55,7 @@ export function ReleaseDetail({ searchId, release }: { searchId: string; release
           {visible.map((f, i) => (
             <li key={f.path} className="flex h-[30px] items-center gap-3.5 text-[13px]">
               {picking ? (
-                <label className="flex min-w-0 items-center gap-3.5">
-                  <Check checked={picked.has(f.path)} onChange={() => toggle(f.path)} aria-label={`Pick ${trackTitle(f.path)}`} />
-                  <span className="truncate">{trackTitle(f.path)}</span>
-                </label>
+                <Checkbox className="min-w-0 [&>label]:truncate" checked={picked.has(f.path)} onCheckedChange={() => toggle(f.path)} label={trackTitle(f.path)} aria-label={`Pick ${trackTitle(f.path)}`} />
               ) : (
                 <>
                   <span className="w-[18px] shrink-0 text-right text-faint">{i + 1}</span>

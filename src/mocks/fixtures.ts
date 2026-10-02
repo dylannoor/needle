@@ -59,6 +59,7 @@ export const profiles = (): QualityProfile[] => [
   {
     id: "lossless-first",
     name: "Lossless first",
+    builtin: true,
     tiers: [
       { label: "FLAC 24-bit", codecs: ["flac", "alac"], minBitDepth: 24, minSampleRate: null, minBitrateKbps: null, allowVbr: false },
       { label: "FLAC 16-bit", codecs: ["flac", "alac"], minBitDepth: 16, minSampleRate: 44100, minBitrateKbps: null, allowVbr: false },
@@ -72,6 +73,7 @@ export const profiles = (): QualityProfile[] => [
   {
     id: "dj-mp3",
     name: "DJ crate (MP3)",
+    builtin: false,
     tiers: [
       { label: "MP3 320 kbps", codecs: ["mp3"], minBitDepth: null, minSampleRate: null, minBitrateKbps: 320, allowVbr: false },
       { label: "MP3 V0", codecs: ["mp3"], minBitDepth: null, minSampleRate: null, minBitrateKbps: 245, allowVbr: true },
@@ -144,6 +146,7 @@ interface RelSpec {
   year?: number;
   expected?: number;
   alternates?: number;
+  hidden?: string;
 }
 
 function release(s: RelSpec, i: number, artist = "Daft Punk"): Release {
@@ -164,6 +167,7 @@ function release(s: RelSpec, i: number, artist = "Daft Punk"): Release {
     trackCount: s.tracks.length,
     expectedTracks: s.expected ?? s.tracks.length,
     score: 100 - i,
+    hiddenReason: s.hidden ?? null,
   };
 }
 
@@ -183,12 +187,18 @@ export function homeworkReleases(): Release[] {
 
 export function homeworkHidden(): Release[] {
   const specs: RelSpec[] = [
-    { user: "b_side_dave", title: "Homework", label: "MP3 192", fmt: { codec: "mp3", bitrate: 192 }, size: 110 * MB, tracks: HOMEWORK, free: true, speed: 900_000, queue: 0, tier: 3 },
-    { user: "ravecave", title: "Homework", label: "MP3 128", fmt: { codec: "mp3", bitrate: 128 }, size: 74 * MB, tracks: HOMEWORK, free: true, speed: 400_000, queue: 0, tier: 3 },
-    { user: "frenchtouch99", title: "Homework", label: "FLAC 16/44.1", fmt: flac16, size: 480 * MB, tracks: HOMEWORK, free: false, speed: 1_900_000, queue: 120, tier: 1 },
-    { user: "itunes_rips", title: "Homework", label: "AAC 256", fmt: { codec: "aac", bitrate: 256 }, size: 140 * MB, tracks: HOMEWORK, free: true, speed: 700_000, queue: 2, tier: 3 },
+    { user: "b_side_dave", title: "Homework", label: "MP3 192", fmt: { codec: "mp3", bitrate: 192 }, size: 110 * MB, tracks: HOMEWORK, free: true, speed: 900_000, queue: 0, tier: 3, hidden: "MP3 192 kbps is below every tier" },
+    { user: "ravecave", title: "Homework", label: "MP3 128", fmt: { codec: "mp3", bitrate: 128 }, size: 74 * MB, tracks: HOMEWORK, free: true, speed: 400_000, queue: 0, tier: 3, hidden: "MP3 128 kbps is below every tier" },
+    { user: "frenchtouch99", title: "Homework", label: "FLAC 16/22.05", fmt: { codec: "flac", bitDepth: 16, sampleRate: 22050 }, size: 480 * MB, tracks: HOMEWORK, free: false, speed: 1_900_000, queue: 120, tier: 1, hidden: "22.05 kHz, your FLAC tiers need 44.1 kHz or higher" },
+    { user: "itunes_rips", title: "Homework", label: "AAC 256", fmt: { codec: "aac", bitrate: 256 }, size: 140 * MB, tracks: HOMEWORK, free: true, speed: 700_000, queue: 2, tier: 3, hidden: "AAC is not in any tier" },
   ];
-  return specs.map((s, i) => release(s, 100 + i));
+  const hidden = specs.map((s, i) => release(s, 100 + i));
+  // A folder with only artwork: the backend lists it as hidden when asked.
+  const scansFolder = "@@music\\Daft Punk\\1997 - Homework [Scans]";
+  const scans: FileInfo[] = ["front.jpg", "back.jpg", "inlay.jpg"].map((n) => ({ path: `${scansFolder}\\${n}`, size: 2_400_000, codec: "other", bitrateKbps: null, vbr: null, sampleRate: null, bitDepth: null, durationSecs: null }));
+  const best = candidate("artwork_hoarder", scansFolder, scans, true, 500_000, null);
+  hidden.push({ id: "r110", title: "Homework [Scans]", artist: "Daft Punk", year: 1997, best, alternates: [], tier: 3, formatLabel: "Images", trackCount: 0, expectedTracks: 16, score: 0, hiddenReason: "No audio files in this folder" });
+  return hidden;
 }
 
 /** Generic results for any other query, so every search shows something. */
@@ -351,7 +361,7 @@ export const uploads = (): UploadsView => ({
 
 export const shares = (): SharesView => ({
   folders: [
-    { path: "~/Music/Library", visibility: "everyone", files: 18402, bytes: 642e9, status: { kind: "scanned", at_ms: NOW - 2 * min } },
+    { path: "~/Music/Library", visibility: "everyone", files: 18402, bytes: 642e9, status: { kind: "scanned", atMs: NOW - 2 * min } },
     { path: "~/Music/Rips", visibility: "everyone", files: 1204, bytes: 88e9, status: { kind: "scanning", percent: 64 } },
     { path: "~/Music/Promos", visibility: "buddies", files: 312, bytes: 9.4e9, status: { kind: "notShared" } },
     { path: "~/Music/Library/Private", visibility: "nobody", files: 233, bytes: 7.1e9, status: { kind: "notShared" } },

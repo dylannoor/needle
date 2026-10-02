@@ -109,7 +109,17 @@ input:not([type=checkbox]):not([type=radio]), select, textarea {
   border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
 }
 textarea { padding: 8px 10px; }
-input[type=checkbox] { accent-color: var(--focus); }
+input[type=checkbox], input[type=radio] {
+  appearance: none; width: 16px; height: 16px; margin: 0 8px 0 0; vertical-align: -3px; flex-shrink: 0;
+  border: 1.5px solid var(--control-line); background: transparent; cursor: pointer; display: inline-grid; place-content: center;
+}
+input[type=checkbox] { border-radius: 4px; }
+input[type=radio] { border-radius: 50%; }
+input[type=checkbox]:hover, input[type=radio]:hover { border-color: var(--control-line-hover); }
+input[type=checkbox]:checked, input[type=radio]:checked { background: var(--text); border-color: var(--text); }
+input[type=checkbox]:checked::after { content: ""; width: 9px; height: 5px; border: solid var(--bg); border-width: 0 0 2px 2px; transform: translateY(-1px) rotate(-45deg); }
+input[type=radio]:checked::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--bg); }
+input[type=checkbox]:disabled, input[type=radio]:disabled { opacity: .45; cursor: default; }
 button { height: var(--control); padding: 0 14px; background: var(--raised-hi); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); cursor: pointer; }
 button:hover { background: var(--seg-on); }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }

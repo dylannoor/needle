@@ -20,6 +20,8 @@
   --color-muted: var(--muted);
   --color-faint: var(--faint);
   --color-idle: var(--idle);
+  --color-control-line: var(--control-line);
+  --color-control-line-hover: var(--control-line-hover);
   --color-focus: var(--focus);
   --color-ok: var(--ok);
   --color-busy: var(--busy);

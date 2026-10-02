@@ -206,6 +206,7 @@ pub fn browse_release(
         track_count: audio,
         expected_tracks: audio,
         score: 0.0,
+        hidden_reason: None,
     }
 }
 

@@ -5,6 +5,10 @@ import type { VerifySettings } from "./VerifySettings";
 
 export type QualityProfile = { id: string, name: string, 
 /**
+ * The profile Needle ships with; it cannot be deleted.
+ */
+builtin: boolean, 
+/**
  * Best first.
  */
 tiers: Array<Tier>, 

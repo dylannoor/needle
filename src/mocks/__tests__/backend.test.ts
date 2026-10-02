@@ -67,6 +67,9 @@ describe("mock ipc", () => {
 
   it("refuses to delete the built-in profile and to save a profile without tiers", async () => {
     await expect(api.profileDelete("lossless-first")).rejects.toMatch(/can't be deleted/);
+    const [, dj] = await api.profilesList();
+    const saved = await api.profileSave({ ...dj, builtin: true });
+    expect(saved.find((x) => x.id === "dj-mp3")?.builtin).toBe(false);
     const [p] = await api.profilesList();
     await expect(api.profileSave({ ...p, tiers: [] })).rejects.toMatch(/at least one tier/);
   });

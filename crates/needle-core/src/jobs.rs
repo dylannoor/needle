@@ -1079,6 +1079,7 @@ mod tests {
             track_count: 3,
             expected_tracks: 3,
             score: 1.0,
+            hidden_reason: None,
         }
     }
 

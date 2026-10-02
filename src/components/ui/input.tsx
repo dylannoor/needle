@@ -39,17 +39,3 @@ export const SearchField = forwardRef<HTMLInputElement, InputHTMLAttributes<HTML
     </div>
   );
 });
-
-/** Native checkbox / radio themed with accent color. */
-export const Check = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Check({ className, ...props }, ref) {
-  return <input ref={ref} type="checkbox" className={cn("m-0 h-[15px] w-[15px] shrink-0 accent-text", className)} {...props} />;
-});
-
-export function Radio({ label, ...props }: InputHTMLAttributes<HTMLInputElement> & { label: ReactNode }) {
-  return (
-    <label className="flex min-h-8 cursor-pointer items-center gap-2.5">
-      <input type="radio" className="m-0 h-[15px] w-[15px] accent-text" {...props} />
-      {label}
-    </label>
-  );
-}

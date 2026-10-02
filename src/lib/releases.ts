@@ -1,6 +1,6 @@
-import type { QualityProfile } from "../bindings/QualityProfile";
+import type { OwnedQuery } from "../bindings/OwnedQuery";
 import type { Release } from "../bindings/Release";
-import { baseName, bytes, formatFamily, isAudio, num, speed } from "./format";
+import { baseName, bytes, formatFamily, isAudio, speed } from "./format";
 import type { Tone } from "../components/ui/status";
 
 export const isComplete = (r: Release) => r.trackCount >= r.expectedTracks;
@@ -20,16 +20,6 @@ export function filterReleases(releases: Release[], f: ReleaseFilter): Release[]
   return releases.filter((r) => !f.off.has(formatFamily(r.formatLabel)) && (!f.completeOnly || isComplete(r)));
 }
 
-/**
- * Why a release is hidden. The contract has no reason field, so this mirrors
- * the backend's rules: queue over the limit, otherwise below every tier.
- */
-export function hiddenReason(r: Release, profile: QualityProfile | undefined): string {
-  const q = r.best.source.queueLen;
-  if (profile && q !== null && q > profile.maxQueue) return `Queue of ${num(q)}, your limit is ${num(profile.maxQueue)}`;
-  return "Below your profile";
-}
-
 export function availability(r: Release): { tone: Tone; text: string } {
   const s = r.best.source;
   return s.freeSlot
@@ -38,6 +28,11 @@ export function availability(r: Release): { tone: Tone; text: string } {
 }
 
 export function sizeText(r: Release): { text: string; partial: boolean } {
+  // Folders without audio (scans, artwork) only show up among hidden releases.
+  if (r.trackCount === 0) {
+    const n = r.best.files.length;
+    return { text: `${n} ${n === 1 ? "file" : "files"} · ${bytes(r.best.totalSize)}`, partial: false };
+  }
   const partial = !isComplete(r);
   const count = partial ? `${r.trackCount} of ${r.expectedTracks}` : `${r.trackCount} ${r.trackCount === 1 ? "track" : "tracks"}`;
   return { text: `${count} · ${bytes(r.best.totalSize)}`, partial };
@@ -51,5 +46,8 @@ export const trackTitle = (path: string) =>
 
 export const audioFiles = (r: Release) => r.best.files.filter(isAudio);
 
-/** The path sent to owned_check for a release: its first audio file. */
-export const ownedKey = (r: Release) => audioFiles(r)[0]?.path ?? r.best.folder;
+/** What owned_check gets for a release: its first audio file (name + size). */
+export function ownedQuery(r: Release): OwnedQuery {
+  const f = audioFiles(r)[0] ?? r.best.files[0];
+  return f ? { path: f.path, size: f.size } : { path: r.best.folder, size: 0 };
+}

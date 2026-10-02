@@ -1,6 +1,6 @@
 //! Search, downloads, uploads and shares.
 
-use needle_core::api::{SharesView, UploadsView, Visibility};
+use needle_core::api::{OwnedQuery, SharesView, UploadsView, Visibility};
 use needle_core::model::{FileInfo, JobEvent, JobView, SearchView};
 use tauri::State;
 
@@ -228,6 +228,6 @@ pub async fn pick_folder(state: State<'_, Shared>) -> Result<Option<String>, Str
 }
 
 #[tauri::command]
-pub fn owned_check(state: State<'_, Shared>, paths: Vec<String>) -> Vec<bool> {
-    crate::shares::owned_check(&state, &paths)
+pub fn owned_check(state: State<'_, Shared>, files: Vec<OwnedQuery>) -> Vec<bool> {
+    crate::shares::owned_check(&state, &files)
 }

@@ -28,32 +28,47 @@ pub fn build_view(
     let mut expected: HashMap<String, usize> = HashMap::new();
     for c in candidates {
         let audio = c.files.iter().filter(|f| f.is_audio()).count();
-        if audio == 0 {
-            hidden.not_audio += c.files.len();
-            continue;
-        }
         let parsed = parse_folder(&c.folder);
-        let max = expected.entry(parsed.key()).or_default();
-        *max = (*max).max(audio);
-
-        let tier = profile.tier_of(&c.files);
-        let long_queue = c.source.queue_len.is_some_and(|q| q > profile.max_queue);
+        if audio > 0 {
+            let max = expected.entry(parsed.key()).or_default();
+            *max = (*max).max(audio);
+        }
+        let tier = if audio == 0 {
+            None
+        } else {
+            profile.tier_of(&c.files)
+        };
+        let queue = c.source.queue_len.filter(|q| *q > profile.max_queue);
+        let reason = if audio == 0 {
+            hidden.not_audio += c.files.len();
+            Some("Only artwork and text files".to_string())
+        } else if tier.is_none() {
+            hidden.below_profile += c.files.len();
+            Some(match profile.tiers.last() {
+                Some(t) => format!(
+                    "{} is below your lowest tier ({})",
+                    format_label(&c.files),
+                    t.label
+                ),
+                None => format!("{} is not in your profile", format_label(&c.files)),
+            })
+        } else if let Some(q) = queue {
+            hidden.queue_too_long += c.files.len();
+            Some(format!("Queue of {q}, your limit is {}", profile.max_queue))
+        } else {
+            None
+        };
         let scored = Scored {
             sig: signature(&c.files),
             tier: tier.unwrap_or(profile.tiers.len()),
             audio,
             parsed,
+            reason,
             c,
         };
-        match tier {
-            None => hidden.below_profile += scored.c.files.len(),
-            Some(_) if long_queue => hidden.queue_too_long += scored.c.files.len(),
-            Some(_) => {
-                shown.push(scored);
-                continue;
-            }
-        }
-        if include_hidden {
+        if scored.reason.is_none() {
+            shown.push(scored);
+        } else if include_hidden {
             held_back.push(scored);
         }
     }
@@ -72,6 +87,7 @@ pub fn build_view(
 
 struct Scored {
     c: Candidate,
+    reason: Option<String>,
     tier: usize,
     audio: usize,
     parsed: Parsed,
@@ -146,7 +162,7 @@ fn into_releases(
                 .copied()
                 .unwrap_or(0)
                 .max(best.audio);
-            let complete = if profile.prefer_complete {
+            let complete = if profile.prefer_complete && expected_tracks > 0 {
                 best.audio as f64 / expected_tracks as f64
             } else {
                 0.0
@@ -161,6 +177,7 @@ fn into_releases(
                 track_count: best.audio,
                 expected_tracks,
                 score: score(best.tier, tiers, complete, &best.c.source),
+                hidden_reason: best.reason,
                 best: best.c,
                 alternates: copies.map(|s| s.c).collect(),
             }
@@ -860,6 +877,51 @@ mod tests {
         assert_eq!(v.hidden_releases.len(), 1);
         assert_eq!(v.hidden_releases[0].tier, 3);
         assert_eq!(v.hidden_releases[0].format_label, "MP3 128");
+    }
+
+    #[test]
+    fn hidden_releases_say_why_in_plain_english() {
+        let profile = QualityProfile::lossless_first();
+        let mp3_192: Vec<FileInfo> = (1..=3)
+            .map(|i| mp3(&format!(r"Low\{i}.mp3"), 100 + i, 192, false))
+            .collect();
+        let queued = Source {
+            queue_len: Some(120),
+            ..src("busy")
+        };
+        let art = vec![other(r"Scans\front.jpg"), other(r"Scans\info.txt")];
+        let v = build_view(
+            "s1",
+            "q",
+            &[
+                result(src("low"), mp3_192),
+                result(queued, homework("Queued", 3)),
+                result(src("scans"), art),
+                result(src("good"), homework("Good", 3)),
+            ],
+            &profile,
+            true,
+        );
+        assert_eq!(v.releases.len(), 1);
+        assert_eq!(v.releases[0].hidden_reason, None);
+        let mut reasons: Vec<String> = v
+            .hidden_releases
+            .iter()
+            .filter_map(|r| r.hidden_reason.clone())
+            .collect();
+        reasons.sort();
+        assert_eq!(
+            reasons,
+            vec![
+                "MP3 192 is below your lowest tier (MP3 320 kbps)",
+                "Only artwork and text files",
+                "Queue of 120, your limit is 50",
+            ]
+        );
+        assert_eq!(v.hidden_releases.len(), 3);
+        assert_eq!(v.hidden.not_audio, 2);
+        assert_eq!(v.hidden.queue_too_long, 3);
+        assert_eq!(v.hidden.below_profile, 3);
     }
 
     #[test]

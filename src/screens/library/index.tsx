@@ -27,7 +27,7 @@ const visibilityOptions = (Object.keys(visibilityLabel) as Visibility[]).map((v)
 function scanText(s: ScanStatus): { tone: Tone; text: string } {
   switch (s.kind) {
     case "scanned":
-      return { tone: "ok", text: `Scanned ${ago(s.at_ms)}` };
+      return { tone: "ok", text: `Scanned ${ago(s.atMs)}` };
     case "scanning":
       return { tone: "busy", text: `Scanning, ${Math.round(s.percent)}%` };
     case "error":

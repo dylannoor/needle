@@ -243,7 +243,7 @@ export function createMockBackend(opts: { latency?: number; simulate?: boolean }
         ...s.shares,
         folders: s.shares.folders.map((f) =>
           f.path === str(a, "path")
-            ? { ...f, visibility, status: visibility !== "everyone" ? { kind: "notShared" } : f.status.kind === "notShared" ? { kind: "scanned", at_ms: Date.now() } : f.status }
+            ? { ...f, visibility, status: visibility !== "everyone" ? { kind: "notShared" } : f.status.kind === "notShared" ? { kind: "scanned", atMs: Date.now() } : f.status }
             : f,
         ),
       };
@@ -257,7 +257,7 @@ export function createMockBackend(opts: { latency?: number; simulate?: boolean }
       later(1500, () => {
         s.shares = {
           ...s.shares,
-          folders: s.shares.folders.map((f) => (f.status.kind === "scanning" ? { ...f, status: { kind: "scanned", at_ms: Date.now() } } : f)),
+          folders: s.shares.folders.map((f) => (f.status.kind === "scanning" ? { ...f, status: { kind: "scanned", atMs: Date.now() } } : f)),
         };
         emit("shares:update", s.shares);
       });
@@ -267,7 +267,7 @@ export function createMockBackend(opts: { latency?: number; simulate?: boolean }
       const p = typeof window !== "undefined" && typeof window.prompt === "function" ? window.prompt("Folder path (mock folder picker)", "~/Music/New folder") : null;
       return p || null;
     },
-    owned_check: (a) => (a.paths as string[]).map((p) => /kdj_archive|Homework \[FLAC 24/.test(p) || p.includes("Da Funk / Musique")),
+    owned_check: (a) => (a.files as { path: string; size: number }[]).map((f) => /Homework \[FLAC 24|Da Funk \/ Musique/.test(f.path)),
 
     settings_get: () => s.settings,
     settings_set: (a) => {
@@ -276,7 +276,9 @@ export function createMockBackend(opts: { latency?: number; simulate?: boolean }
     },
     profiles_list: () => s.profiles,
     profile_save: (a) => {
-      const p = a.profile as QualityProfile;
+      const sent = a.profile as QualityProfile;
+      // Like the backend: builtin comes from the stored profile, never from the client.
+      const p = { ...sent, builtin: s.profiles.find((x) => x.id === sent.id)?.builtin ?? false };
       if (!p.name.trim()) throw "Give the profile a name.";
       if (!p.tiers.length) throw "A profile needs at least one tier.";
       const i = s.profiles.findIndex((x) => x.id === p.id);
@@ -284,7 +286,7 @@ export function createMockBackend(opts: { latency?: number; simulate?: boolean }
       return s.profiles;
     },
     profile_delete: (a) => {
-      if (str(a, "id") === "lossless-first") throw "The built-in profile can't be deleted.";
+      if (s.profiles.find((p) => p.id === str(a, "id"))?.builtin) throw "The built-in profile can't be deleted.";
       s.profiles = s.profiles.filter((p) => p.id !== str(a, "id"));
       return s.profiles;
     },

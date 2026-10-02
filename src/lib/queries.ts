@@ -21,7 +21,7 @@ export const keys = {
   history: ["searchHistory"] as const,
   search: (id: string) => ["search", id] as const,
   searchView: (id: string, profileId: string | null, includeHidden: boolean) => ["search", id, profileId, includeHidden] as const,
-  owned: (paths: string[]) => ["owned", paths] as const,
+  owned: (files: { path: string; size: number }[]) => ["owned", files] as const,
   jobs: ["jobs"] as const,
   uploads: ["uploads"] as const,
   shares: ["shares"] as const,

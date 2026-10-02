@@ -2,7 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Button } from "../components/ui/button";
 import { Logo } from "../components/ui/icons";
-import { Check, Input } from "../components/ui/input";
+import { Checkbox } from "../components/ui/checkbox";
+import { Input } from "../components/ui/input";
 import { InlineError } from "../components/ui/states";
 import { api, errorText } from "../lib/ipc";
 import { keys, useSession } from "../lib/queries";
@@ -44,10 +45,7 @@ export function LoginScreen() {
           Password
         </label>
         <Input id="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <label className="flex items-center gap-2.5 pt-4 text-[13px]">
-          <Check checked={remember} onChange={(e) => setRemember(e.target.checked)} />
-          Remember me on this computer
-        </label>
+        <Checkbox className="mt-3 text-[13px]" checked={remember} onCheckedChange={setRemember} label="Remember me on this computer" />
         {error && (
           <div className="pt-5">
             <InlineError message={error} />

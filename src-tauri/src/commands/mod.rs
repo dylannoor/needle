@@ -109,6 +109,10 @@ pub fn profile_save(
     mut profile: QualityProfile,
 ) -> Result<Vec<QualityProfile>, String> {
     profile.validate()?;
+    profile.builtin = state
+        .profiles()
+        .iter()
+        .any(|p| p.id == profile.id && p.builtin);
     if profile.id.trim().is_empty() {
         profile.id = format!("p{:x}", crate::state::now_ms());
     }
@@ -118,7 +122,7 @@ pub fn profile_save(
 
 #[tauri::command]
 pub fn profile_delete(state: State<'_, Shared>, id: String) -> Result<Vec<QualityProfile>, String> {
-    if id == QualityProfile::lossless_first().id {
+    if state.profiles().iter().any(|p| p.id == id && p.builtin) {
         return Err("The built-in profile cannot be deleted".into());
     }
     lock(&state.store).delete_profile(&id).map_err(err)?;

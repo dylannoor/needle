@@ -5,6 +5,9 @@ Payload types live in `crates/needle-core/src/{model,api}.rs` and are generated
 into `src/bindings/` by `cargo test -p needle-core`. Command arguments are
 camelCase on the JS side (Tauri's default). Errors come back as a plain string.
 
+Tagged unions use `kind` for the variant and camelCase for every field,
+variant fields included (`{ kind: "completed", localPath }`).
+
 Events are global `app.emit(name, payload)`. Lists that change often are
 re-sent whole, throttled to at most every 250 ms, so the UI never has to merge.
 
@@ -24,7 +27,7 @@ Event `session` → `SessionStatus`.
 | Command | Args | Returns |
 |---|---|---|
 | `search_start` | `query, profileId: string \| null` | `string` (search id) |
-| `search_view` | `searchId, profileId: string \| null, includeHidden: bool` | `SearchView` |
+| `search_view` | `searchId, profileId: string \| null, includeHidden: bool` | `SearchView` (each hidden release carries `hiddenReason`) |
 | `search_cancel` | `searchId` | |
 | `search_history` | | `string[]` (latest first, max 50) |
 | `search_user` | `username, query` | `string` (search id) |
@@ -67,7 +70,7 @@ Event `uploads:update` → `UploadsView`.
 | `share_set_visibility` | `path, visibility` | `SharesView` |
 | `shares_rescan` | | `SharesView` |
 | `pick_folder` | | `string \| null` (native folder dialog) |
-| `owned_check` | `paths: string[]` | `bool[]` ("you have this", by file name + size) |
+| `owned_check` | `files: OwnedQuery[]` | `bool[]` ("you have this": same file name, any case, and same size) |
 
 Event `shares:update` → `SharesView`.
 
@@ -78,8 +81,8 @@ Event `shares:update` → `SharesView`.
 | `settings_get` | | `Settings` |
 | `settings_set` | `settings: Settings` | `Settings` |
 | `profiles_list` | | `QualityProfile[]` |
-| `profile_save` | `profile: QualityProfile` | `QualityProfile[]` |
-| `profile_delete` | `id` | `QualityProfile[]` (the built-in one cannot be deleted) |
+| `profile_save` | `profile: QualityProfile` | `QualityProfile[]` (`builtin` is kept from the stored profile, a client cannot set it) |
+| `profile_delete` | `id` | `QualityProfile[]` (refused for `builtin` profiles) |
 | `profile_preview` | `profile: QualityProfile` | `[shown: number, total: number] \| null` (against the last search) |
 
 ## Users and buddies

@@ -11,7 +11,8 @@ import { Dialog } from "../../components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuRadioItems, DropdownMenuSeparator, DropdownMenuTrigger } from "../../components/ui/dropdown-menu";
 import { Field, SectionTitle } from "../../components/ui/field";
 import { ChevronDown, DragHandle } from "../../components/ui/icons";
-import { Input, Radio } from "../../components/ui/input";
+import { Input } from "../../components/ui/input";
+import { RadioGroup } from "../../components/ui/radio-group";
 import { Segmented } from "../../components/ui/segmented";
 import { Select } from "../../components/ui/select";
 import { Bar, InlineError, SkeletonRows } from "../../components/ui/states";
@@ -142,7 +143,7 @@ function ProfileEditor({ initial, profiles, activeId, onPick }: { initial: Quali
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => setNameDialog("new")}>New profile</DropdownMenuItem>
             <DropdownMenuItem onSelect={() => setNameDialog("rename")}>Rename</DropdownMenuItem>
-            <DropdownMenuItem danger disabled={profiles.length < 2} onSelect={() => del.mutate()}>
+            <DropdownMenuItem danger disabledReason={draft.builtin ? "Needle's built-in profile can't be deleted, only changed." : undefined} onSelect={() => del.mutate()}>
               Delete profile
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -208,12 +209,19 @@ function ProfileEditor({ initial, profiles, activeId, onPick }: { initial: Quali
             />
             <p className="mt-2.5 mb-0 text-[13px] text-muted">{strictnessHints[draft.verify.strictness]}</p>
 
-            <div role="radiogroup" aria-labelledby="ff" className="flex flex-col pt-8">
+            <div className="flex flex-col pt-8">
               <div id="ff" className="pb-1.5 font-medium">
                 When a file fails
               </div>
-              <Radio name="fail" label="Delete it and get it from the next source" checked={draft.verify.onFail === "delete"} onChange={() => update({ verify: { ...draft.verify, onFail: "delete" } })} />
-              <Radio name="fail" label="Move it to a Rejected folder, then try the next source" checked={draft.verify.onFail === "moveToRejected"} onChange={() => update({ verify: { ...draft.verify, onFail: "moveToRejected" } })} />
+              <RadioGroup
+                aria-labelledby="ff"
+                value={draft.verify.onFail}
+                onValueChange={(onFail) => update({ verify: { ...draft.verify, onFail } })}
+                options={[
+                  { value: "delete", label: "Delete it and get it from the next source" },
+                  { value: "moveToRejected", label: "Move it to a Rejected folder, then try the next source" },
+                ]}
+              />
             </div>
           </div>
 
@@ -259,7 +267,7 @@ function ProfileEditor({ initial, profiles, activeId, onPick }: { initial: Quali
             if (nameDialog === "rename") update({ name });
             else {
               flush();
-              const p: QualityProfile = { ...draft, id: `p-${Date.now().toString(36)}`, name };
+              const p: QualityProfile = { ...draft, id: `p-${Date.now().toString(36)}`, name, builtin: false };
               save.mutate(p, { onSuccess: () => onPick(p.id) });
             }
             setNameDialog(null);

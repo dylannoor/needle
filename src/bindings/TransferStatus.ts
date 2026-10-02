@@ -3,4 +3,4 @@
 /**
  * What the backend reports about one requested file.
  */
-export type TransferStatus = { "kind": "queued", position: number | null, } | { "kind": "progress", bytes: number, total: number, speed: number, } | { "kind": "completed", local_path: string, } | { "kind": "failed", reason: string, } | { "kind": "timedOut" } | { "kind": "cancelled" };
+export type TransferStatus = { "kind": "queued", position: number | null, } | { "kind": "progress", bytes: number, total: number, speed: number, } | { "kind": "completed", localPath: string, } | { "kind": "failed", reason: string, } | { "kind": "timedOut" } | { "kind": "cancelled" };

@@ -69,6 +69,7 @@ impl QualityProfile {
         QualityProfile {
             id: "lossless-first".into(),
             name: "Lossless first".into(),
+            builtin: true,
             tiers: vec![
                 Tier {
                     min_bit_depth: Some(24),

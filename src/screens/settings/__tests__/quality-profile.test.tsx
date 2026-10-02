@@ -93,4 +93,13 @@ describe("Quality profile", () => {
     await user.click(await screen.findByRole("button", { name: "Raise queue limit" }));
     expect(await screen.findByRole("alert", undefined, { timeout: 2000 })).toHaveTextContent("Couldn't write the profile to disk.");
   });
+
+  it("only lets you delete profiles that are not built in", async () => {
+    const { user } = renderWithProviders(<QualityProfilePage />);
+    await user.click(await screen.findByRole("button", { name: "Profile: Lossless first" }));
+    expect(await screen.findByRole("menuitem", { name: "Delete profile" })).toHaveAttribute("data-disabled");
+    await user.click(screen.getByRole("menuitemradio", { name: "DJ crate (MP3)" }));
+    await user.click(await screen.findByRole("button", { name: "Profile: DJ crate (MP3)" }));
+    expect(await screen.findByRole("menuitem", { name: "Delete profile" })).not.toHaveAttribute("data-disabled");
+  });
 });

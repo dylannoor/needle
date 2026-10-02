@@ -26,4 +26,8 @@ trackCount: number,
  * Most audio files seen for this release across all peers; more than
  * `track_count` means this copy is incomplete.
  */
-expectedTracks: number, score: number, };
+expectedTracks: number, score: number, 
+/**
+ * Why the release is hidden, in plain English; `None` when it is shown.
+ */
+hiddenReason: string | null, };

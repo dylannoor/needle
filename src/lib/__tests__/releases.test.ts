@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { homeworkHidden, homeworkReleases, profiles } from "../../mocks/fixtures";
-import { families, filterReleases, hiddenReason, isComplete, sizeText, trackTitle } from "../releases";
+import { homeworkReleases } from "../../mocks/fixtures";
+import { families, filterReleases, isComplete, ownedQuery, sizeText, trackTitle } from "../releases";
 
 const releases = homeworkReleases();
-const profile = profiles()[0];
 
 describe("families", () => {
   it("lists codec families in result order without duplicates", () => {
@@ -44,20 +43,15 @@ describe("isComplete and sizeText", () => {
   });
 });
 
-describe("hiddenReason", () => {
-  const hidden = homeworkHidden();
-  const withQueue = (q: number | null) => ({ ...hidden[0], best: { ...hidden[0].best, source: { ...hidden[0].best.source, queueLen: q } } });
-  it("names the queue when it is over the profile limit", () => {
-    expect(hiddenReason(withQueue(120), profile)).toBe("Queue of 120, your limit is 50");
+describe("ownedQuery", () => {
+  it("asks about the first audio file by path and size, not the cover", () => {
+    const q = ownedQuery(releases[0]);
+    expect(q.path).toMatch(/01 - Daftendirekt\.flac$/);
+    expect(q.size).toBe(releases[0].best.files[0].size);
   });
-  it("does not guess when the queue length is unknown", () => {
-    expect(hiddenReason(withQueue(null), profile)).toBe("Below your profile");
-  });
-  it("does not blame a queue exactly at the limit", () => {
-    expect(hiddenReason(withQueue(50), profile)).toBe("Below your profile");
-  });
-  it("falls back to the format when no profile is loaded", () => {
-    expect(hiddenReason(hidden[2], undefined)).toBe("Below your profile");
+  it("falls back to the folder when a release has no files", () => {
+    const empty = { ...releases[0], best: { ...releases[0].best, files: [] } };
+    expect(ownedQuery(empty)).toEqual({ path: releases[0].best.folder, size: 0 });
   });
 });
 

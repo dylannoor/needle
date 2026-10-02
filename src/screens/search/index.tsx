@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import type { QualityProfile } from "../../bindings/QualityProfile";
 import { Aside, Body, Screen, TopBar } from "../../components/layout";
 import { Button } from "../../components/ui/button";
 import { Chip } from "../../components/ui/chip";
@@ -13,7 +12,7 @@ import { num, plural } from "../../lib/format";
 import { api, errorText } from "../../lib/ipc";
 import { useNav, type SearchTab } from "../../lib/nav";
 import { keys, useProfiles, useSettings } from "../../lib/queries";
-import { families, filterReleases, ownedKey } from "../../lib/releases";
+import { families, filterReleases, ownedQuery } from "../../lib/releases";
 import { ReleaseDetail } from "./release-detail";
 import { ReleaseTable, releaseGrid } from "./release-table";
 import { SearchBox } from "./search-box";
@@ -94,7 +93,7 @@ export function SearchScreen() {
         {wishlist ? (
           <WishlistPanel />
         ) : tab && profileId ? (
-          <Results key={tab.id} tab={tab} profileId={profileId} profile={profiles.find((p) => p.id === profileId)} />
+          <Results key={tab.id} tab={tab} profileId={profileId} />
         ) : (
           <NoSearch />
         )}
@@ -124,7 +123,7 @@ function NoSearch() {
   );
 }
 
-function Results({ tab, profileId, profile }: { tab: SearchTab; profileId: string; profile: QualityProfile | undefined }) {
+function Results({ tab, profileId }: { tab: SearchTab; profileId: string }) {
   const [showHidden, setShowHidden] = useState(false);
   const [off, setOff] = useState<Set<string>>(new Set());
   const [completeOnly, setCompleteOnly] = useState(false);
@@ -151,8 +150,8 @@ function Results({ tab, profileId, profile }: { tab: SearchTab; profileId: strin
   const hidden = data?.hiddenReleases ?? [];
 
   const all = [...releases, ...hidden];
-  const paths = all.map(ownedKey);
-  const owned = useQuery({ queryKey: keys.owned(paths), queryFn: () => api.ownedCheck(paths), enabled: paths.length > 0, staleTime: 60_000 });
+  const files = all.map(ownedQuery);
+  const owned = useQuery({ queryKey: keys.owned(files), queryFn: () => api.ownedCheck(files), enabled: files.length > 0, staleTime: 60_000 });
   const ownedIds = new Set(all.filter((_, i) => owned.data?.[i]).map((r) => r.id));
 
   const selected = all.find((r) => r.id === selectedId) ?? filtered[0] ?? null;
@@ -207,7 +206,6 @@ function Results({ tab, profileId, profile }: { tab: SearchTab; profileId: strin
           owned={ownedIds}
           selectedId={selected?.id ?? null}
           onSelect={setSelectedId}
-          profile={profile}
           loading={view.isPending}
           emptyLabel={
             releases.length

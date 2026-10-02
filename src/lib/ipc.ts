@@ -10,6 +10,7 @@ import type { ExtensionInfo } from "../bindings/ExtensionInfo";
 import type { FileInfo } from "../bindings/FileInfo";
 import type { Interests } from "../bindings/Interests";
 import type { JobView } from "../bindings/JobView";
+import type { OwnedQuery } from "../bindings/OwnedQuery";
 import type { QualityProfile } from "../bindings/QualityProfile";
 import type { Recommendation } from "../bindings/Recommendation";
 import type { RoomEventPayload } from "../bindings/RoomEventPayload";
@@ -147,7 +148,7 @@ export const api = {
     call<SharesView>("share_set_visibility", { path, visibility }),
   sharesRescan: () => call<SharesView>("shares_rescan"),
   pickFolder: () => call<string | null>("pick_folder"),
-  ownedCheck: (paths: string[]) => call<boolean[]>("owned_check", { paths }),
+  ownedCheck: (files: OwnedQuery[]) => call<boolean[]>("owned_check", { files }),
 
   // Settings and profiles
   settingsGet: () => call<Settings>("settings_get"),

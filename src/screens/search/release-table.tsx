@@ -1,13 +1,12 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef, type CSSProperties } from "react";
-import type { QualityProfile } from "../../bindings/QualityProfile";
 import type { Release } from "../../bindings/Release";
 import { TableHead } from "../../components/layout";
 import { Bar, GhostRows, SkeletonRows } from "../../components/ui/states";
 import { StatusDot } from "../../components/ui/status";
 import { cn } from "../../lib/cn";
 import { isLossyLabel } from "../../lib/format";
-import { availability, hiddenReason, sizeText } from "../../lib/releases";
+import { availability, sizeText } from "../../lib/releases";
 
 export const releaseGrid = "grid grid-cols-[minmax(150px,1fr)_110px_96px_136px_164px] items-center gap-4 px-3";
 
@@ -20,12 +19,11 @@ interface Props {
   owned: Set<string>;
   selectedId: string | null;
   onSelect: (id: string) => void;
-  profile: QualityProfile | undefined;
   loading: boolean;
   emptyLabel: string;
 }
 
-export function ReleaseTable({ releases, hidden, showHidden, owned, selectedId, onSelect, profile, loading, emptyLabel }: Props) {
+export function ReleaseTable({ releases, hidden, showHidden, owned, selectedId, onSelect, loading, emptyLabel }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const items: Item[] = releases.map((r) => ({ kind: "release", r, hidden: false }));
   if (showHidden && hidden.length) {
@@ -76,7 +74,7 @@ export function ReleaseTable({ releases, hidden, showHidden, owned, selectedId, 
                   </div>
                 );
               }
-              return <ReleaseRow key={it.r.id} style={style} r={it.r} hidden={it.hidden} owned={owned.has(it.r.id)} selected={it.r.id === selectedId} onSelect={onSelect} reason={it.hidden ? hiddenReason(it.r, profile) : null} />;
+              return <ReleaseRow key={it.r.id} style={style} r={it.r} hidden={it.hidden} owned={owned.has(it.r.id)} selected={it.r.id === selectedId} onSelect={onSelect} reason={it.hidden ? (it.r.hiddenReason ?? "Hidden by your profile") : null} />;
             })}
           </div>
         </div>
@@ -114,7 +112,7 @@ function ReleaseRow({ r, hidden, owned, selected, onSelect, reason, style }: { r
           <span className="font-semibold">{r.title}</span>
           {r.artist && <span className="text-muted">{"  "}{r.artist}</span>}
         </div>
-        {reason ? <div className="truncate text-[12px] text-warn">{reason}</div> : owned && <div className="truncate text-[12px] text-ok">You have this</div>}
+        {reason ? <div className="truncate text-[12px] text-warn" title={reason}>{reason}</div> : owned && <div className="truncate text-[12px] text-ok">You have this</div>}
       </div>
       <span className="truncate text-muted">{r.best.source.username}</span>
       <span className={isLossyLabel(r.formatLabel) ? "text-muted" : "text-text"}>{r.formatLabel}</span>

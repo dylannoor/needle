@@ -6,7 +6,7 @@ import type { SharedDir } from "../../bindings/SharedDir";
 import { TableHead } from "../../components/layout";
 import { Button } from "../../components/ui/button";
 import { ChevronRight, Folder, Lock } from "../../components/ui/icons";
-import { Check } from "../../components/ui/input";
+import { Checkbox } from "../../components/ui/checkbox";
 import { Bar, GhostRows, InlineError, SkeletonRows } from "../../components/ui/states";
 import { cn } from "../../lib/cn";
 import { baseName, bytes, clock, codecName, plural } from "../../lib/format";
@@ -178,11 +178,11 @@ export function BrowseView({ username }: { username: string }) {
                 <div className="min-h-0 grow overflow-auto">
                   {files.map((f) => (
                     <label key={f.path} className={cn(fileGrid, "h-10 cursor-pointer rounded-sm hover:bg-raised")}>
-                      <Check
+                      <Checkbox
                         disabled={selected.locked}
                         checked={picked.has(f.path)}
                         aria-label={`Pick ${baseName(f.path)}`}
-                        onChange={() =>
+                        onCheckedChange={() =>
                           setPicked((p) => {
                             const n = new Set(p);
                             if (n.has(f.path)) n.delete(f.path);
