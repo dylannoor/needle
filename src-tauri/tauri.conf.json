@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "needle",
+  "productName": "Needle",
   "version": "0.1.0",
   "identifier": "app.needle.client",
   "build": {
@@ -12,9 +12,14 @@
   "app": {
     "windows": [
       {
-        "title": "needle",
-        "width": 800,
-        "height": 600
+        "title": "Needle",
+        "width": 1320,
+        "height": 860,
+        "minWidth": 1100,
+        "minHeight": 700,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "backgroundColor": "#121314"
       }
     ],
     "security": {
