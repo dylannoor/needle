@@ -1,0 +1,47 @@
+/* Design tokens. Every color and size in the UI comes from here. */
+:root {
+  --bg: #121314;
+  --rail: #0e0f10;
+  --raised: #18191b;
+  --selected: #1c1d20;
+  --raised-hi: #222326;
+  --hover-btn: #1a1b1d;
+  --input: #161719;
+  --seg-on: #26282b;
+  --chip-on: #1f2023;
+  --chip-on-line: #3a3c40;
+  --switch-off: #2e3034;
+
+  --line: #1f2023;
+  --line-soft: #1a1b1d;
+  --line-strong: #2a2c2f;
+
+  --text: #e9e7e2;
+  --muted: #a3a19b;
+  --faint: #84827c;
+  --idle: #5a5c60;
+  --link-line: #55575b;
+
+  --focus: #7fa8ff;
+  --selection: #34446a;
+  --ok: #5cc48e;
+  --busy: #74a7ff;
+  --warn: #e6a23c;
+  --bad: #ef6f5e;
+  --spectrum: #4e6e9e;
+
+  --radius: 7px;
+  --radius-sm: 5px;
+  --radius-lg: 8px;
+  --row: 52px;
+  --control: 36px;
+  --topbar: 72px;
+  --rail-width: 216px;
+  --drag-region: 44px;
+  --aside: clamp(320px, 25vw, 360px);
+  --aside-wide: 400px;
+
+  --font: "Schibsted Grotesk Variable", "Schibsted Grotesk", system-ui, sans-serif;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration: 180ms;
+}

@@ -1,0 +1,141 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-rail: var(--rail);
+  --color-raised: var(--raised);
+  --color-selected: var(--selected);
+  --color-raised-hi: var(--raised-hi);
+  --color-hover-btn: var(--hover-btn);
+  --color-input: var(--input);
+  --color-seg-on: var(--seg-on);
+  --color-chip-on: var(--chip-on);
+  --color-chip-on-line: var(--chip-on-line);
+  --color-switch-off: var(--switch-off);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-line-strong: var(--line-strong);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-idle: var(--idle);
+  --color-focus: var(--focus);
+  --color-ok: var(--ok);
+  --color-busy: var(--busy);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+  --color-spectrum: var(--spectrum);
+  --radius-ctl: var(--radius);
+  --radius-sm: var(--radius-sm);
+  --radius-lg: var(--radius-lg);
+  --font-sans: var(--font);
+  --ease-ui: var(--ease);
+  --spacing-row: var(--row);
+  --spacing-control: var(--control);
+  --spacing-topbar: var(--topbar);
+  --spacing-rail: var(--rail-width);
+  --spacing-drag: var(--drag-region);
+  --spacing-aside: var(--aside);
+  --spacing-aside-wide: var(--aside-wide);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 400 14px/1.45 var(--font);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    user-select: none;
+    cursor: default;
+  }
+  input,
+  textarea,
+  [data-selectable] {
+    user-select: text;
+  }
+  button {
+    cursor: pointer;
+    font: inherit;
+  }
+  button:disabled {
+    cursor: default;
+  }
+  ::selection {
+    background: var(--selection);
+    color: #fff;
+  }
+  input,
+  textarea {
+    caret-color: var(--focus);
+    font: inherit;
+    color: inherit;
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 650;
+    letter-spacing: -0.015em;
+  }
+  h2 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  a,
+  .link {
+    color: var(--text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--link-line);
+    background: none;
+    border: 0;
+    padding: 0;
+  }
+  a:hover,
+  .link:hover {
+    color: #fff;
+    text-decoration-color: var(--text);
+  }
+  input[type="number"] {
+    appearance: textfield;
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border-radius: 6px;
+    border: 3px solid var(--bg);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--idle);
+  }
+}

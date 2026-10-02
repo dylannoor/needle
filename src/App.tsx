@@ -1,51 +1,82 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
-import "./App.css";
+import { useEffect, useRef } from "react";
+import { startExtensionRuntime } from "./extensions-runtime";
+import { Rail } from "./components/rail";
+import { TooltipProvider } from "./components/ui/tooltip";
+import { Logo } from "./components/ui/icons";
+import { NavProvider, useNav, type Screen } from "./lib/nav";
+import { useBackendEvents, useSession } from "./lib/queries";
+import { LoginScreen } from "./screens/login";
+import { SearchScreen } from "./screens/search";
+import { TransfersScreen } from "./screens/transfers";
+import { LibraryScreen } from "./screens/library";
+import { RoomsScreen } from "./screens/rooms";
+import { MessagesScreen } from "./screens/messages";
+import { UsersScreen } from "./screens/users";
+import { ExtensionsScreen } from "./screens/extensions";
+import { SettingsScreen } from "./screens/settings";
 
-function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
+const screens: Record<Screen, () => React.JSX.Element> = {
+  search: SearchScreen,
+  transfers: TransfersScreen,
+  library: LibraryScreen,
+  rooms: RoomsScreen,
+  messages: MessagesScreen,
+  users: UsersScreen,
+  extensions: ExtensionsScreen,
+  settings: SettingsScreen,
+};
 
+function Shell() {
+  const { screen } = useNav();
+  const Current = screens[screen];
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
-
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
+    <div className="flex h-full overflow-hidden bg-bg text-text">
+      <Rail />
+      <Current />
+    </div>
   );
 }
 
-export default App;
+function Splash({ text }: { text: string }) {
+  return (
+    <div data-tauri-drag-region className="flex h-full flex-col items-center justify-center gap-3 text-muted">
+      <span className="text-text">
+        <Logo size={28} />
+      </span>
+      <span className="text-[13px]">{text}</span>
+    </div>
+  );
+}
+
+function initialScreen(): Screen {
+  const s = new URLSearchParams(location.search).get("screen");
+  return s && s in screens ? (s as Screen) : "search";
+}
+
+export function App() {
+  useBackendEvents();
+  const session = useSession();
+  const online = session.data?.state === "online";
+  const started = useRef(false);
+
+  useEffect(() => {
+    if (online && !started.current) {
+      started.current = true;
+      void startExtensionRuntime();
+    }
+  }, [online]);
+
+  let content: React.JSX.Element;
+  if (session.isPending) content = <Splash text="Starting Needle" />;
+  else if (online) {
+    content = (
+      <NavProvider initial={initialScreen()}>
+        <Shell />
+      </NavProvider>
+    );
+  } else if (session.data?.state === "connecting" && session.data.remembered) content = <Splash text={`Connecting as ${session.data.username ?? "you"}`} />;
+  else content = <LoginScreen status={session.data ?? null} />;
+
+  return <TooltipProvider>{content}</TooltipProvider>;
+}
