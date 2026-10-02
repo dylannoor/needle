@@ -150,9 +150,11 @@ function Results({ tab, profileId }: { tab: SearchTab; profileId: string }) {
   const hidden = data?.hiddenReleases ?? [];
 
   const all = [...releases, ...hidden];
-  const files = all.map(ownedQuery);
+  // Folders without audio can't be "owned"; only ask about releases with tracks.
+  const checkable = all.filter((r) => r.trackCount > 0);
+  const files = checkable.map(ownedQuery);
   const owned = useQuery({ queryKey: keys.owned(files), queryFn: () => api.ownedCheck(files), enabled: files.length > 0, staleTime: 60_000 });
-  const ownedIds = new Set(all.filter((_, i) => owned.data?.[i]).map((r) => r.id));
+  const ownedIds = new Set(checkable.filter((_, i) => owned.data?.[i]).map((r) => r.id));
 
   const selected = all.find((r) => r.id === selectedId) ?? filtered[0] ?? null;
   const hiddenFiles = data ? data.hidden.belowProfile + data.hidden.queueTooLong + data.hidden.notAudio : 0;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { homeworkReleases } from "../../mocks/fixtures";
+import { homeworkHidden, homeworkReleases } from "../../mocks/fixtures";
 import { families, filterReleases, isComplete, ownedQuery, sizeText, trackTitle } from "../releases";
 
 const releases = homeworkReleases();
@@ -40,6 +40,13 @@ describe("isComplete and sizeText", () => {
   it("counts exactly-equal track counts as complete", () => {
     expect(isComplete(releases[0])).toBe(true);
     expect(sizeText(releases[0]).text).toBe("16 tracks · 483 MB");
+  });
+});
+
+describe("sizeText for folders without audio", () => {
+  it("counts files instead of tracks and never flags them as partial", () => {
+    const scans = homeworkHidden().find((r) => r.trackCount === 0)!;
+    expect(sizeText(scans)).toEqual({ text: "3 files · 7.2 MB", partial: false });
   });
 });
 

@@ -97,9 +97,22 @@ describe("Quality profile", () => {
   it("only lets you delete profiles that are not built in", async () => {
     const { user } = renderWithProviders(<QualityProfilePage />);
     await user.click(await screen.findByRole("button", { name: "Profile: Lossless first" }));
-    expect(await screen.findByRole("menuitem", { name: "Delete profile" })).toHaveAttribute("data-disabled");
-    await user.click(screen.getByRole("menuitemradio", { name: "DJ crate (MP3)" }));
+    const builtin = await screen.findByRole("menuitem", { name: "Delete profile" });
+    expect(builtin).toHaveAttribute("aria-disabled", "true");
+    // Reaching it explains why; selecting it does nothing.
+    await user.keyboard("{End}");
+    expect(builtin).toHaveFocus();
+    expect((await screen.findAllByText("Needle's built-in profile can't be deleted, only changed.")).length).toBeGreaterThan(0);
+    const spy = vi.spyOn(api, "profileDelete");
+    await user.keyboard("{Enter}");
+    expect(spy).not.toHaveBeenCalled();
+    await user.keyboard("{Escape}");
+    await user.click(await screen.findByRole("button", { name: "Profile: Lossless first" }));
+    await user.click(await screen.findByRole("menuitemradio", { name: "DJ crate (MP3)" }));
     await user.click(await screen.findByRole("button", { name: "Profile: DJ crate (MP3)" }));
-    expect(await screen.findByRole("menuitem", { name: "Delete profile" })).not.toHaveAttribute("data-disabled");
+    const own = await screen.findByRole("menuitem", { name: "Delete profile" });
+    expect(own).not.toHaveAttribute("aria-disabled");
+    await user.click(own);
+    await waitFor(() => expect(spy.mock.calls[0]?.[0]).toBe("dj-mp3"));
   });
 });

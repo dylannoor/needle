@@ -35,7 +35,9 @@ describe("Search results", () => {
     await user.click(screen.getByRole("button", { name: "Show 1,278 hidden files" }));
     await screen.findByText("Hidden by your profile");
     expect(spy).toHaveBeenLastCalledWith(expect.any(String), "lossless-first", true);
-    expect(rows()).toHaveLength(10);
+    expect(rows()).toHaveLength(11);
+    expect(screen.getByText("No audio files in this folder")).toBeInTheDocument();
+    expect(screen.getByText("3 files · 7.2 MB")).toBeInTheDocument();
     // Reasons come from the backend's hiddenReason.
     expect(screen.getByText("AAC is not in any tier")).toBeInTheDocument();
     expect(screen.getByText("22.05 kHz, your FLAC tiers need 44.1 kHz or higher")).toBeInTheDocument();

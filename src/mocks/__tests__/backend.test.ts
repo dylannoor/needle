@@ -24,7 +24,7 @@ describe("mock ipc", () => {
   it("only returns hidden releases when asked", async () => {
     const id = await api.searchStart("Daft Punk Homework", null);
     expect((await api.searchView(id, null, false)).hiddenReleases).toHaveLength(0);
-    expect((await api.searchView(id, null, true)).hiddenReleases).toHaveLength(4);
+    expect((await api.searchView(id, null, true)).hiddenReleases).toHaveLength(5);
   });
 
   it("rejects an empty search with a plain message", async () => {
