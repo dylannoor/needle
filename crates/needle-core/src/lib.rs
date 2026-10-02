@@ -2,6 +2,7 @@
 //! talks to the network or the UI. No Tauri, no sockets, so it tests fast.
 
 pub mod api;
+pub mod files;
 pub mod jobs;
 pub mod model;
 pub mod profile;
