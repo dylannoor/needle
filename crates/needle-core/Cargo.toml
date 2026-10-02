@@ -1,0 +1,12 @@
+[package]
+name = "needle-core"
+description = "Search grouping, quality profiles, the fallback engine and audio verification for Needle"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+ts-rs.workspace = true

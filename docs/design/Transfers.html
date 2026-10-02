@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Needle transfers</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+::selection{background:#34446A;color:#fff}
+a{color:#E9E7E2;text-underline-offset:3px;text-decoration-color:#55575B}a:hover{color:#fff;text-decoration-color:#E9E7E2}
+:focus-visible{outline:2px solid #7FA8FF;outline-offset:2px}
+.app{width:1440px;height:900px;display:flex;background:#121314;color:#E9E7E2;font:400 14px/1.45 'Schibsted Grotesk',sans-serif;font-variant-numeric:tabular-nums;overflow:hidden}
+.rail{width:216px;flex-shrink:0;background:#0E0F10;border-right:1px solid #1F2023;display:flex;flex-direction:column;padding:18px 10px;gap:2px;box-sizing:border-box}
+.nav{display:flex;align-items:center;gap:11px;height:36px;padding:0 10px;border-radius:7px;color:#A3A19B;text-decoration:none;font-weight:500}
+.nav:hover{background:#18191B;color:#E9E7E2}
+.nav[aria-current]{background:#1C1D20;color:#E9E7E2}
+.count{margin-left:auto;font-size:12px;color:#84827C}
+.ico{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.top{display:flex;align-items:center;gap:10px;height:72px;padding:0 28px;border-bottom:1px solid #1F2023;box-sizing:border-box;flex-shrink:0}
+h1{margin:0;font-size:20px;font-weight:650;letter-spacing:-0.015em}
+h2{margin:0;font-size:14px;font-weight:600}
+.btn{height:36px;padding:0 14px;border-radius:7px;border:1px solid #2A2C2F;background:transparent;color:#E9E7E2;font:500 14px 'Schibsted Grotesk',sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.btn:hover{background:#1A1B1D}
+.seg{display:flex;gap:2px;padding:3px;border-radius:8px;background:#18191B;border:1px solid #2A2C2F}
+.seg button{height:28px;padding:0 12px;border:0;border-radius:5px;background:transparent;color:#A3A19B;font:500 13px 'Schibsted Grotesk',sans-serif;cursor:pointer}
+.seg button[aria-selected=true]{background:#26282B;color:#E9E7E2}
+.muted{color:#A3A19B}.faint{color:#84827C}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.item{padding:14px 12px;border-radius:7px;display:flex;flex-direction:column;gap:9px;cursor:pointer}
+.item:hover{background:#18191B}
+</style>
+</helmet>
+<div class="app">
+
+<nav class="rail" aria-label="Main">
+<div style="display: flex; align-items: center; gap: 9px; padding: 2px 10px 18px">
+<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" fill="none" stroke="#E9E7E2" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="9"></circle><circle cx="11" cy="11" r="1.6" fill="#E9E7E2"></circle><path d="M19.5 2.5 13 9"></path></svg>
+<span style="font-size: 17px; font-weight: 700; letter-spacing: -0.02em">Needle</span>
+</div>
+<a class="nav" href="Main.dc.html"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>Search</a>
+<a class="nav" href="Transfers.dc.html" aria-current="page"><svg class="ico" viewBox="0 0 24 24"><path d="M12 4v12"></path><path d="m7 11 5 5 5-5"></path><path d="M5 20h14"></path></svg>Transfers<span class="count">4</span></a>
+<a class="nav" href="Shares.dc.html"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h4v15H4z"></path><path d="M10 5h4v15h-4z"></path><path d="m16 6 3.4-.9 3.1 14.4-3.4.9z"></path></svg>Library &amp; shares</a>
+<a class="nav" href="#"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"></path></svg>Rooms</a>
+<a class="nav" href="#"><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16v12H4z"></path><path d="m4 7 8 6 8-6"></path></svg>Messages<span class="count">2</span></a>
+<a class="nav" href="#"><svg class="ico" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"></circle><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7"></path><path d="M18 14c2 .8 3 2.8 3 6"></path></svg>Users &amp; buddies</a>
+<a class="nav" href="#"><svg class="ico" viewBox="0 0 24 24"><path d="M9 4h6v4h4v6h-4v6H9v-6H5V8h4z"></path></svg>Extensions</a>
+<div style="flex-grow: 1"></div>
+<a class="nav" href="Profile.dc.html"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"></path></svg>Settings</a>
+<div style="display: flex; align-items: center; gap: 9px; height: 36px; padding: 0 10px; font-size: 13px" class="muted"><span class="dot" style="background: #5CC48E"></span>Online as [username]</div>
+</nav>
+
+<main style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column">
+<div class="top">
+<h1>Transfers</h1>
+<div class="seg" role="tablist" style="margin-left: 14px">
+<button type="button" role="tab" aria-selected="true">Downloads 4</button>
+<button type="button" role="tab" aria-selected="false">Uploads 2</button>
+</div>
+<div style="flex-grow: 1"></div>
+<span class="muted" style="font-size: 13px">Down 3.1 MB/s · Up 1.1 MB/s</span>
+</div>
+
+<div style="flex-grow: 1; min-height: 0; display: flex">
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; padding: 20px 16px">
+<h2 style="padding: 0 12px 6px">Active</h2>
+<sc-for list="{{active}}" as="t" hint-placeholder-count="4">
+<div class="item" style="background: {{t.bg}}">
+<div style="display: flex; align-items: baseline; gap: 12px">
+<div style="flex-grow: 1; min-width: 0"><span style="font-weight: 600">{{t.title}}</span><span class="muted">  {{t.artist}}</span></div>
+<span class="faint" style="font-size: 13px">{{t.meta}}</span>
+</div>
+<div style="height: 3px; border-radius: 2px; background: #222326"><div style="height: 3px; border-radius: 2px; width: {{t.pct}}; background: {{t.color}}"></div></div>
+<div style="display: flex; align-items: center; gap: 8px; font-size: 13px">
+<span class="dot" style="background: {{t.color}}"></span><span>{{t.status}}</span><span class="faint">{{t.sub}}</span>
+</div>
+</div>
+</sc-for>
+
+<h2 style="padding: 28px 12px 6px">Finished today</h2>
+<sc-for list="{{done}}" as="d" hint-placeholder-count="2">
+<div style="display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 12px">
+<span class="dot" style="background: #5CC48E"></span>
+<div style="flex-grow: 1; min-width: 0"><span style="font-weight: 600">{{d.title}}</span><span class="muted">  {{d.artist}}</span></div>
+<span class="muted" style="font-size: 13px">{{d.status}}</span>
+<a href="#" style="font-size: 13px; margin-left: 12px">Show in folder</a>
+</div>
+</sc-for>
+</div>
+
+<aside aria-label="Transfer details" style="width: 400px; flex-shrink: 0; border-left: 1px solid #1F2023; padding: 24px 28px; display: flex; flex-direction: column; box-sizing: border-box">
+<h2 style="font-size: 20px; font-weight: 650; letter-spacing: -0.015em; line-height: 1.25">Sceneries Not Songs, Volume One</h2>
+<div class="muted" style="padding-top: 4px">Larry Heard · FLAC 16/44.1 · source 2 of 5</div>
+
+<div style="display: flex; justify-content: space-between; align-items: baseline; padding: 32px 0 12px">
+<span style="font-weight: 600">Why 03.flac was rejected</span>
+<span style="font-size: 13px; color: #E6A23C">Cutoff at 16 kHz</span>
+</div>
+<div style="position: relative; height: 120px; display: flex; align-items: flex-end; gap: 2px; border-bottom: 1px solid #2A2C2F">
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="44">
+<div style="flex-grow: 1; height: {{b.h}}; background: {{b.c}}; border-radius: 1px 1px 0 0"></div>
+</sc-for>
+<div style="position: absolute; left: 72.7%; top: 0; bottom: 0; border-left: 1px dashed #E6A23C"></div>
+</div>
+<div class="faint" style="display: flex; justify-content: space-between; font-size: 12px; padding-top: 6px"><span>0</span><span>5</span><span>10</span><span>15</span><span>22 kHz</span></div>
+<p class="muted" style="margin: 14px 0 0; font-size: 13px">CD audio reaches about 22 kHz. This file stops at 16 kHz, the signature of a 128 to 192 kbps MP3 saved as FLAC.</p>
+
+<div style="display: flex; flex-direction: column; gap: 10px; padding-top: 28px">
+<sc-for list="{{log}}" as="l" hint-placeholder-count="3">
+<div style="display: flex; gap: 14px; font-size: 13px">
+<span class="faint" style="width: 38px; flex-shrink: 0">{{l.time}}</span><span class="muted">{{l.text}}</span>
+</div>
+</sc-for>
+</div>
+
+<div style="flex-grow: 1"></div>
+<button type="button" class="btn" style="justify-content: center; height: 40px">Keep 03.flac anyway</button>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const busy = '#74A7FF', warn = '#E6A23C', idle = '#5A5C60';
+    const active = [
+      { title: 'Homework', artist: 'Daft Punk', meta: '62% · 1.9 MB/s · 2 min left', pct: '62%', color: busy, status: 'Downloading 10 of 16', sub: 'from deepcrates' },
+      { title: 'Sceneries Not Songs, Volume One', artist: 'Larry Heard', meta: '81% · source 2 of 5', pct: '81%', color: warn, status: 'Replacing 03.flac', sub: 'failed the lossless check', sel: true },
+      { title: 'First Floor', artist: 'Theo Parrish', meta: '34% · 1.2 MB/s', pct: '34%', color: warn, status: 'Switched source', sub: 'kdj_archive stopped sending, now soul_sounds' },
+      { title: 'Minimal Nation', artist: 'Robert Hood', meta: 'next source in 7:40', pct: '0%', color: idle, status: 'Position 14 in queue', sub: 'at hood_fan' },
+    ].map((t) => ({ ...t, bg: t.sel ? '#1C1D20' : 'transparent' }));
+    const done = [
+      { title: 'Trax on da Rocks', artist: 'Kerri Chandler', status: 'All files verified lossless' },
+      { title: 'Silentintroduction', artist: 'Moodymann', status: 'Verified MP3 320' },
+    ];
+    const bars = [];
+    for (let i = 0; i < 44; i++) {
+      const h = i < 32 ? Math.round(96 - (i / 44) * 70 + (i % 3) * 4) : 2 + (i % 2);
+      bars.push({ h: h + '%', c: i < 32 ? '#4E6E9E' : '#2A2C2F' });
+    }
+    const log = [
+      { time: '14:04', text: 'kdj_archive stopped sending data, switched to vinyl_haus' },
+      { time: '14:07', text: '03.flac failed the check and was deleted' },
+      { time: '14:07', text: 'Found the same file at house_nation, downloading' },
+    ];
+    return { active, done, bars, log };
+  }
+}
+</script>
+</body>
+</html>
